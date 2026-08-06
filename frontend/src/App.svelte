@@ -21,6 +21,25 @@
 
   let tab: 'generar' | 'mis-voces' | 'compartidas' | 'historial' = $state('generar')
 
+  // --- Notificaciones globales de error (toasts) ---
+  // Cada formulario ya muestra su propio error junto a sí mismo, pero esa
+  // alerta vive en el estado del componente: si el usuario cambia de pestaña
+  // antes de que termine una petición larga (p. ej. subir un audio de varios
+  // minutos para clonar una voz), el componente se desmonta y el aviso se
+  // pierde sin que nadie lo vea. Este toast vive aquí arriba, en App.svelte,
+  // así que sobrevive al cambio de pestaña y siempre es visible.
+  let toasts: { id: string; message: string }[] = $state([])
+
+  function notifyError(message: string) {
+    const id = crypto.randomUUID()
+    toasts = [...toasts, { id, message }]
+    setTimeout(() => dismissToast(id), 10000)
+  }
+
+  function dismissToast(id: string) {
+    toasts = toasts.filter((t) => t.id !== id)
+  }
+
   // La voz clonada elegida se recuerda entre visitas (localStorage), para no
   // tener que volver a seleccionarla cada vez que se abre la página.
   let referenceId = $state(loadPersisted('referenceId', ''))
@@ -34,22 +53,35 @@
     if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
     voices = await res.json()
   }
-  loadVoices().catch(() => (voices = []))
+  loadVoices().catch((err) => {
+    voices = []
+    notifyError(err instanceof Error ? err.message : 'No se han podido cargar tus voces')
+  })
 
   async function createVoiceApi(title: string, files: File[]) {
-    const form = new FormData()
-    form.set('title', title)
-    for (const file of files) form.append('voices', file)
+    try {
+      const form = new FormData()
+      form.set('title', title)
+      for (const file of files) form.append('voices', file)
 
-    const res = await fetch('/api/voices', { method: 'POST', body: form })
-    if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-    await loadVoices()
+      const res = await fetch('/api/voices', { method: 'POST', body: form })
+      if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
+      await loadVoices()
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : 'Error creando la voz')
+      throw err
+    }
   }
 
   async function deleteVoiceApi(id: string) {
-    const res = await fetch(`/api/voices/${id}`, { method: 'DELETE' })
-    if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-    await loadVoices()
+    try {
+      const res = await fetch(`/api/voices/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
+      await loadVoices()
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : 'Error eliminando la voz')
+      throw err
+    }
   }
 
   // --- Voces compartidas (de otros autores, guardadas por enlace o ID) ---
@@ -57,23 +89,38 @@
 
   async function loadSharedVoices() {
     const res = await fetch('/api/shared-voices')
-    sharedVoices = res.ok ? await res.json() : []
+    if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
+    sharedVoices = await res.json()
   }
-  loadSharedVoices().catch(() => (sharedVoices = []))
+  loadSharedVoices().catch((err) => {
+    sharedVoices = []
+    notifyError(err instanceof Error ? err.message : 'No se han podido cargar las voces compartidas')
+  })
 
   async function addSharedVoiceApi(input: string) {
-    const res = await fetch('/api/shared-voices', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ input }),
-    })
-    if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-    await loadSharedVoices()
+    try {
+      const res = await fetch('/api/shared-voices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input }),
+      })
+      if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
+      await loadSharedVoices()
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : 'Error añadiendo la voz compartida')
+      throw err
+    }
   }
 
   async function removeSharedVoiceApi(id: string) {
-    await fetch(`/api/shared-voices/${id}`, { method: 'DELETE' })
-    await loadSharedVoices()
+    try {
+      const res = await fetch(`/api/shared-voices/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
+      await loadSharedVoices()
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : 'Error quitando la voz compartida')
+      throw err
+    }
   }
 
   // --- Favoritos (modelos base y voces clonadas, para elegir rápido) ---
@@ -81,9 +128,13 @@
 
   async function loadFavorites() {
     const res = await fetch('/api/favorites')
-    favorites = res.ok ? await res.json() : []
+    if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
+    favorites = await res.json()
   }
-  loadFavorites().catch(() => (favorites = []))
+  loadFavorites().catch((err) => {
+    favorites = []
+    notifyError(err instanceof Error ? err.message : 'No se han podido cargar los favoritos')
+  })
 
   function isFavorite(type: Favorite['type'], id: string) {
     return id !== '' && favorites.some((f) => f.type === type && f.id === id)
@@ -94,17 +145,22 @@
     try {
       if (isFavorite(type, id)) {
         const res = await fetch(`/api/favorites/${encodeURIComponent(`${type}:${id}`)}`, { method: 'DELETE' })
-        if (res.ok) favorites = await res.json()
+        if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
+        favorites = await res.json()
       } else {
         const res = await fetch('/api/favorites', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type, id, label }),
         })
-        if (res.ok) favorites = await res.json()
+        if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
+        favorites = await res.json()
       }
-    } catch {
-      // Si falla, el estado de favoritos simplemente no cambia; no es crítico.
+    } catch (err) {
+      // Si falla, el estado de favoritos no cambia, pero al menos se avisa
+      // (antes fallaba en silencio y no había ninguna forma de saber por qué
+      // el botón de favorito no había hecho nada).
+      notifyError(err instanceof Error ? err.message : 'Error actualizando favoritos')
     }
   }
 
@@ -113,14 +169,23 @@
 
   async function loadGenerations() {
     const res = await fetch('/api/generations')
-    generations = res.ok ? await res.json() : []
+    if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
+    generations = await res.json()
   }
-  loadGenerations().catch(() => (generations = []))
+  loadGenerations().catch((err) => {
+    generations = []
+    notifyError(err instanceof Error ? err.message : 'No se ha podido cargar el historial')
+  })
 
   async function deleteGenerationApi(id: string) {
-    const res = await fetch(`/api/generations/${id}`, { method: 'DELETE' })
-    if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-    await loadGenerations()
+    try {
+      const res = await fetch(`/api/generations/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
+      await loadGenerations()
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : 'Error eliminando la generación')
+      throw err
+    }
   }
 </script>
 
@@ -159,6 +224,7 @@
       {isFavorite}
       onToggleFavorite={toggleFavorite}
       onGenerated={loadGenerations}
+      onError={notifyError}
     />
   {:else if tab === 'mis-voces'}
     <MyVoices {voices} {favorites} bind:referenceId {isFavorite} onToggleFavorite={toggleFavorite} onCreateVoice={createVoiceApi} onDeleteVoice={deleteVoiceApi} />
@@ -176,3 +242,15 @@
     <GenerationHistory {generations} onDeleteGeneration={deleteGenerationApi} />
   {/if}
 </main>
+
+<!-- Toasts globales de error: fijos arriba a la derecha, visibles en
+     cualquier pestaña y aunque el componente que disparó el error ya no
+     esté montado. Se cierran solos a los 10s o con la ×. -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
+  {#each toasts as t (t.id)}
+    <div class="alert alert-danger d-flex align-items-start gap-2 shadow-sm mb-2" role="alert">
+      <span class="flex-grow-1">{t.message}</span>
+      <button type="button" class="btn-close" aria-label="Cerrar" onclick={() => dismissToast(t.id)}></button>
+    </div>
+  {/each}
+</div>

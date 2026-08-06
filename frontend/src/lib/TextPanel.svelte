@@ -13,6 +13,7 @@
     isFavorite,
     onToggleFavorite,
     onGenerated,
+    onError,
   }: {
     voices: Voice[]
     sharedVoices: Voice[]
@@ -21,6 +22,10 @@
     isFavorite: (type: Favorite['type'], id: string) => boolean
     onToggleFavorite: (type: Favorite['type'], id: string, label: string) => void
     onGenerated: () => void
+    // Además del error que se muestra aquí mismo (ttsError), se avisa también
+    // arriba en App.svelte con un toast global — así no se pierde si el
+    // usuario cambia de pestaña mientras se genera el audio.
+    onError: (message: string) => void
   } = $props()
 
   let text = $state('')
@@ -66,7 +71,9 @@
       // El backend ya lo ha guardado (audio + texto/modelo/voz) en su historial.
       onGenerated()
     } catch (err) {
-      ttsError = err instanceof Error ? err.message : 'Error generando el audio'
+      const message = err instanceof Error ? err.message : 'Error generando el audio'
+      ttsError = message
+      onError(message)
     } finally {
       ttsLoading = false
     }
