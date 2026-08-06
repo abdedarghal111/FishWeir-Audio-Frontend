@@ -565,7 +565,7 @@ if (existsSync(path.join(frontendDist, 'index.html'))) {
   })
 } else {
   app.get('/', (_req, res) => {
-    res.send('Backend de Fish Audio corriendo. El frontend está en http://localhost:5173 (pnpm dev).')
+    res.send('Backend de FishWeir Audio Frontend corriendo. El frontend está en http://localhost:5173 (pnpm dev).')
   })
 }
 
