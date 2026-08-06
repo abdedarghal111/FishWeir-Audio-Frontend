@@ -1,4 +1,4 @@
-# Fish Audio Frontend
+# FishWeir Audio Frontend
 
 <p align="center">
     <img src="./.github/images/logo.png" alt="App icon" width="200">
@@ -6,6 +6,7 @@
 
 <p align="center">
     <a href="#qué-es-esto">Qué es esto</a> ·
+    <a href="#sobre-el-nombre">Sobre el nombre</a> ·
     <a href="#funcionalidades">Funcionalidades</a> ·
     <a href="#tecnologías-usadas">Tecnologías usadas</a> ·
     <a href="#modo-de-uso">Modo de uso</a> ·
@@ -19,6 +20,12 @@ Un frontend con un pequeño backend propio que hace de intermediario con la API 
 Es un proyecto nacido de una necesidad personal, no pensado para ser un producto escalable, sin capas ni abstracciones de más, una herramienta rápida. También es una forma de apoyar el open source y las APIs que cobran de forma barata y transparente: Fish Audio me pareció un coste razonable además de que permite un modelo gratuito para pruebas.
 
 Se ha desarrollado con ayuda de IA agéntica para ir más rápido, con revisión y supervisión humana en todo momento (como cualquier desarrollo profesional de hoy en día).
+
+## Sobre el nombre
+
+El nombre "FishWeir" es solo un juego de palabras, nada más. Un "weir" es una compuerta o barrera que tradicionalmente se usaba para dirigir y retener peces en un río; aquí los "peces" son, por analogía, los audios que genera la API, y el "weir" es este propio proyecto, que hace de intermediario y se queda con todo lo que pasa por él (historial, voces, favoritos) para que tú puedas gestionarlo cómodamente. Es una metáfora simpática sobre cómo funciona la herramienta, sin segundas intenciones.
+
+Aclarado esto por si acaso: no tiene ninguna intención maliciosa ni busca insinuar nada raro sobre Fish Audio ni sobre cómo trata tus datos. Todo lo contrario, animo a cualquiera que use este proyecto a comprarle créditos a la API oficial de [Fish Audio](https://fish.audio) y usarla directamente, porque es rápida, cómoda y de muy buena calidad.
 
 ## Funcionalidades
 
