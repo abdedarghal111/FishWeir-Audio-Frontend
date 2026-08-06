@@ -96,6 +96,11 @@
   let ttsLoading = $state(false)
   let ttsError = $state('')
   let audioUrl = $state('')
+  // Id que el backend asigna a esta generación en su historial (lo manda en
+  // una cabecera porque la respuesta de /api/tts es el audio en crudo, no
+  // JSON) — se usa para que el nombre de descarga coincida con el que se ve
+  // luego en la pestaña de Historial, en vez de un nombre genérico.
+  let audioId = $state('')
 
   async function generateSpeech(e: Event) {
     e.preventDefault()
@@ -125,6 +130,7 @@
       if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
 
       if (audioUrl) URL.revokeObjectURL(audioUrl)
+      audioId = res.headers.get('X-Generation-Id') ?? ''
       audioUrl = URL.createObjectURL(await res.blob())
       // El backend ya lo ha guardado (audio + texto/modelo/voz) en su historial.
       onGenerated()
@@ -213,7 +219,7 @@
   </div>
 
   {#if ttsError}<div class="alert alert-danger py-2 mb-0">{ttsError}</div>{/if}
-  {#if audioUrl}<AudioPlayer src={audioUrl} downloadName="fish-audio.wav" compressedName="fish-audio.mp3" />{/if}
+  {#if audioUrl}<AudioPlayer src={audioUrl} downloadName="{audioId || 'fish-audio'}.wav" compressedName="{audioId || 'fish-audio'}.mp3" />{/if}
 
   <div>
     <label class="form-label" for="text">Texto</label>

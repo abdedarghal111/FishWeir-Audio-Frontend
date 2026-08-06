@@ -287,6 +287,12 @@ app.post('/api/tts', async (req, res) => {
     await mkdir(generationsDir, { recursive: true })
 
     res.setHeader('Content-Type', 'audio/wav')
+    // El frontend recibe aquí el audio en crudo (no JSON), así que la única
+    // forma de que sepa con qué id se ha guardado esta generación en el
+    // historial es leerlo de una cabecera — lo usa para nombrar el archivo
+    // al descargarlo en vez de un nombre genérico.
+    res.setHeader('X-Generation-Id', id)
+    res.setHeader('Access-Control-Expose-Headers', 'X-Generation-Id')
     const nodeStream = Readable.from(audio)
     const fileStream = createWriteStream(path.resolve(generationsDir, fileName))
     nodeStream.pipe(res)
