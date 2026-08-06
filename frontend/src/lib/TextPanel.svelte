@@ -4,6 +4,7 @@
   // envío usa directamente lo que haya en referenceId al generar.
   import { MODELS, errorMessage, loadPersisted, savePersisted, type Favorite, type Voice } from './types'
   import AudioPlayer from './AudioPlayer.svelte'
+  import EnhanceTextModal from './EnhanceTextModal.svelte'
   import VoiceQuickPicker from './VoiceQuickPicker.svelte'
 
   let {
@@ -35,6 +36,32 @@
   // cambia de pestaña.
   let text = $state(loadPersisted('text', ''))
   $effect(() => savePersisted('text', text))
+
+  // El botón "Mejorar con IA" solo se muestra si el backend tiene configurada
+  // una API key de DeepSeek (nunca se comprueba la key en sí, solo si existe:
+  // ver GET /api/enhance-text/status en backend/server.ts).
+  let enhanceAvailable = $state(false)
+  fetch('/api/enhance-text/status')
+    .then((res) => (res.ok ? res.json() : { available: false }))
+    .then((data) => (enhanceAvailable = Boolean(data?.available)))
+    .catch(() => {})
+
+  let showEnhanceModal = $state(false)
+  // Snapshot del texto justo antes de aceptar un resultado de la IA, para
+  // poder deshacerlo con un click si el resultado no gusta.
+  let previousText: string | null = $state(null)
+
+  function acceptEnhancedText(newText: string) {
+    previousText = text
+    text = newText
+    showEnhanceModal = false
+  }
+
+  function undoEnhancedText() {
+    if (previousText === null) return
+    text = previousText
+    previousText = null
+  }
 
   let model = $state(loadPersisted('model', 's2.1-pro-free'))
   $effect(() => savePersisted('model', model))
@@ -222,7 +249,21 @@
   {#if audioUrl}<AudioPlayer src={audioUrl} downloadName="{audioId || 'fish-audio'}.wav" compressedName="{audioId || 'fish-audio'}.mp3" />{/if}
 
   <div>
-    <label class="form-label" for="text">Texto</label>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+      <label class="form-label mb-0" for="text">Texto</label>
+      <div class="d-flex align-items-center gap-2">
+        {#if previousText !== null}
+          <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" onclick={undoEnhancedText}>
+            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Deshacer
+          </button>
+        {/if}
+        {#if enhanceAvailable}
+          <button type="button" class="btn btn-sm btn-outline-primary" onclick={() => (showEnhanceModal = true)} disabled={!text.trim()}>
+            <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Mejorar con IA
+          </button>
+        {/if}
+      </div>
+    </div>
     <textarea
       id="text"
       class="form-control"
@@ -355,6 +396,10 @@
       </div>
     </div>
   </div>
+{/if}
+
+{#if showEnhanceModal}
+  <EnhanceTextModal {text} {model} onAccept={acceptEnhancedText} onClose={() => (showEnhanceModal = false)} />
 {/if}
 
 <style>

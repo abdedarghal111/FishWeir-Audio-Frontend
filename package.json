@@ -25,7 +25,8 @@
     "bootstrap": "^5.3.8",
     "express": "^5.2.1",
     "fish-audio": "^0.1.0",
-    "multer": "^2.2.0"
+    "multer": "^2.2.0",
+    "openai": "^4.77.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.2.0",
