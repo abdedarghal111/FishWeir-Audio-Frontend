@@ -27,6 +27,15 @@ if (!apiKey) {
 }
 const fishAudio = new FishAudioClient({ apiKey })
 
+// `cover_image` y `author.avatar` llegan como rutas relativas dentro del bucket
+// de Fish Audio (p.ej. "coverimage/<id>" o "avatars/<archivo>.png"), no como
+// URLs completas — hay que anteponerles el dominio de su CDN para que carguen.
+const FISH_CDN_BASE = 'https://public-platform.r2.fish.audio/'
+
+function toAbsoluteImageUrl(pathOrUrl: string): string {
+  return /^https?:\/\//.test(pathOrUrl) ? pathOrUrl : FISH_CDN_BASE + pathOrUrl.replace(/^\/+/, '')
+}
+
 // El SDK identifica los modelos como `_id`. Se reenvía toda la info que la
 // propia web de Fish Audio muestra para una voz (descripción, portada, tags,
 // visibilidad, contadores de likes/marks/shares/tasks, autor, modo de
@@ -36,7 +45,7 @@ function toVoiceModel(entity: ModelEntity) {
     id: entity._id,
     title: entity.title,
     description: entity.description,
-    coverImage: entity.cover_image || undefined,
+    coverImage: entity.cover_image ? toAbsoluteImageUrl(entity.cover_image) : undefined,
     state: entity.state,
     tags: entity.tags,
     createdAt: entity.created_at,
@@ -46,7 +55,7 @@ function toVoiceModel(entity: ModelEntity) {
     markCount: entity.mark_count,
     sharedCount: entity.shared_count,
     taskCount: entity.task_count,
-    author: entity.author,
+    author: entity.author && { ...entity.author, avatar: entity.author.avatar ? toAbsoluteImageUrl(entity.author.avatar) : entity.author.avatar },
     trainMode: entity.train_mode,
     languages: entity.languages,
     samples: entity.samples,
