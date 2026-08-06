@@ -1,7 +1,8 @@
 // Backend mínimo: un solo archivo con todo (cliente de Fish Audio + rutas +
 // servir el frontend). La API key SOLO vive aquí, nunca llega al navegador.
-import { existsSync } from 'node:fs'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { createWriteStream, existsSync } from 'node:fs'
+import { mkdir, readFile, stat, unlink, writeFile } from 'node:fs/promises'
+import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 import { Readable } from 'node:stream'
 import express from 'express'
@@ -152,21 +153,113 @@ app.delete('/api/favorites/:key', async (req, res) => {
   res.json(favorites)
 })
 
+// --- Historial de audios generados ---
+// Cada generación se guarda en disco (el .wav) más una entrada de metadata
+// (texto, modelo, voz usada, fecha) en un JSON, mismo patrón que favoritos y
+// voces compartidas. Así se puede volver a escuchar/descargar más tarde sin
+// depender de que el navegador siga teniendo el blob en memoria.
+type Generation = {
+  id: string
+  createdAt: string
+  text: string
+  model: string
+  referenceId?: string
+  voiceTitle?: string
+  format: 'wav'
+  fileName: string
+  sizeBytes: number
+}
+const generationsDir = path.resolve(import.meta.dirname, 'data/generations')
+const generationsPath = path.resolve(import.meta.dirname, 'data/generations.json')
+
+async function readGenerations(): Promise<Generation[]> {
+  try {
+    return JSON.parse(await readFile(generationsPath, 'utf-8'))
+  } catch {
+    return []
+  }
+}
+
+async function writeGenerations(generations: Generation[]) {
+  await mkdir(path.dirname(generationsPath), { recursive: true })
+  await writeFile(generationsPath, JSON.stringify(generations, null, 2))
+}
+
+app.get('/api/generations', async (_req, res) => {
+  res.json(await readGenerations())
+})
+
+app.get('/api/generations/:id/audio', async (req, res) => {
+  const generation = (await readGenerations()).find((g) => g.id === req.params.id)
+  if (!generation) {
+    res.status(404).json({ message: 'No se ha encontrado esa generación.' })
+    return
+  }
+  res.setHeader('Content-Type', 'audio/wav')
+  res.sendFile(path.resolve(generationsDir, generation.fileName), (err) => {
+    if (err) res.status(404).json({ message: 'El archivo de audio ya no está disponible.' })
+  })
+})
+
+app.delete('/api/generations/:id', async (req, res) => {
+  const generations = await readGenerations()
+  const generation = generations.find((g) => g.id === req.params.id)
+  await writeGenerations(generations.filter((g) => g.id !== req.params.id))
+  if (generation) await unlink(path.resolve(generationsDir, generation.fileName)).catch(() => {})
+  res.status(204).end()
+})
+
 // --- Texto a voz ---
 app.post('/api/tts', async (req, res) => {
-  const { text, referenceId, model } = req.body ?? {}
+  const { text, referenceId, model, voiceTitle } = req.body ?? {}
   if (typeof text !== 'string' || !text.trim()) {
     res.status(400).json({ message: 'Falta el campo "text".' })
     return
   }
 
+  // WAV sin comprimir: Fish Audio cobra por el texto de entrada, no por el
+  // formato/bitrate de salida, así que no cuesta más pedir la máxima calidad.
+  const format = 'wav' as const
+
   try {
     const audio = await fishAudio.textToSpeech.convert(
-      { text, reference_id: referenceId || undefined },
+      { text, reference_id: referenceId || undefined, format },
       (model as FishModel as unknown as Backends) || undefined,
     )
-    res.setHeader('Content-Type', 'audio/mpeg')
-    Readable.from(audio).pipe(res)
+
+    const id = randomUUID()
+    const fileName = `${id}.${format}`
+    await mkdir(generationsDir, { recursive: true })
+
+    res.setHeader('Content-Type', 'audio/wav')
+    const nodeStream = Readable.from(audio)
+    const fileStream = createWriteStream(path.resolve(generationsDir, fileName))
+    nodeStream.pipe(res)
+    nodeStream.pipe(fileStream)
+
+    fileStream.on('finish', async () => {
+      try {
+        const { size } = await stat(path.resolve(generationsDir, fileName))
+        const generations = await readGenerations()
+        generations.unshift({
+          id,
+          createdAt: new Date().toISOString(),
+          text,
+          model: (model as string) || 's2.1-pro-free',
+          referenceId: referenceId || undefined,
+          voiceTitle: typeof voiceTitle === 'string' && voiceTitle ? voiceTitle : undefined,
+          format,
+          fileName,
+          sizeBytes: size,
+        })
+        await writeGenerations(generations)
+      } catch (err) {
+        console.error('No se ha podido guardar la metadata de la generación:', err)
+      }
+    })
+    fileStream.on('error', (err) => {
+      console.error('No se ha podido guardar en disco el audio generado:', err)
+    })
   } catch (error) {
     sendFishAudioError(res, error, 'No se ha podido generar el audio con Fish Audio.')
   }
