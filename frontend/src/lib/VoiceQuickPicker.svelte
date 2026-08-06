@@ -9,10 +9,14 @@
     voices,
     sharedVoices,
     referenceId = $bindable(''),
+    onSelect,
   }: {
     voices: Voice[]
     sharedVoices: Voice[]
     referenceId: string
+    // Se llama tras elegir una voz (o la de por defecto), además de fijar
+    // referenceId — así quien la use en un modal puede cerrarlo al elegir.
+    onSelect?: () => void
   } = $props()
 
   let search = $state('')
@@ -20,12 +24,17 @@
   let filteredVoices = $derived(
     allVoices.filter((v) => v.title.toLowerCase().includes(search.trim().toLowerCase())),
   )
+
+  function pick(id: string) {
+    referenceId = id
+    onSelect?.()
+  }
 </script>
 
 <h3 class="h6">Voz clonada</h3>
 <input type="search" class="form-control mb-2" bind:value={search} placeholder="Filtrar voces..." />
 
-<button type="button" class="btn text-start w-100 mb-2" class:btn-primary={referenceId === ''} class:btn-outline-secondary={referenceId !== ''} onclick={() => (referenceId = '')}>
+<button type="button" class="btn text-start w-100 mb-2" class:btn-primary={referenceId === ''} class:btn-outline-secondary={referenceId !== ''} onclick={() => pick('')}>
   Voz por defecto del modelo
 </button>
 
@@ -40,7 +49,7 @@
           class="btn text-start d-flex align-items-center gap-2 w-100"
           class:btn-primary={referenceId === voice.id}
           class:btn-outline-secondary={referenceId !== voice.id}
-          onclick={() => (referenceId = voice.id)}
+          onclick={() => pick(voice.id)}
         >
           {#if voice.coverImage}
             <img src={voice.coverImage} alt="" class="rounded object-fit-cover flex-shrink-0" style="width: 2.25rem; height: 2.25rem;" />
