@@ -3,6 +3,7 @@
   // servidor con su texto/modelo/voz), a ancho completo para poder verlos
   // más cómodamente que en la columna estrecha del panel de biblioteca.
   import { formatBytes, formatDate, type Generation } from './types'
+  import AudioPlayer from './AudioPlayer.svelte'
 
   let {
     generations,
@@ -62,7 +63,13 @@
               </details>
             {/if}
 
-            <audio controls preload="none" src="/api/generations/{g.id}/audio" class="w-100 mt-auto"></audio>
+            <div class="mt-auto">
+              <AudioPlayer
+                src="/api/generations/{g.id}/audio"
+                downloadName="{g.id}.{g.format}"
+                compressedName="{g.id}.mp3"
+              />
+            </div>
           </div>
         </div>
       </div>

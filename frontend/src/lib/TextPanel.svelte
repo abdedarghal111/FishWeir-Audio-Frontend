@@ -3,6 +3,7 @@
   // lista compacta para elegir la voz clonada (VoiceQuickPicker) — así el
   // envío usa directamente lo que haya en referenceId al generar.
   import { MODELS, errorMessage, loadPersisted, savePersisted, type Favorite, type Voice } from './types'
+  import AudioPlayer from './AudioPlayer.svelte'
   import VoiceQuickPicker from './VoiceQuickPicker.svelte'
 
   let {
@@ -154,7 +155,7 @@
     </button>
 
     {#if ttsError}<div class="alert alert-danger py-2 mb-0">{ttsError}</div>{/if}
-    {#if audioUrl}<audio controls src={audioUrl} class="w-100"></audio>{/if}
+    {#if audioUrl}<AudioPlayer src={audioUrl} downloadName="fish-audio.wav" compressedName="fish-audio.mp3" />{/if}
   </div>
 
   <div class="col-lg-5 border-start-lg ps-lg-4">

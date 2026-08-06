@@ -208,6 +208,11 @@ app.get('/api/generations/:id/audio', async (req, res) => {
     return
   }
   res.setHeader('Content-Type', 'audio/wav')
+  // Sin esto, el navegador descarga el archivo con un nombre genérico (el
+  // último trozo de la URL, "audio") en vez de algo reconocible. "inline" en
+  // vez de "attachment" para que el <audio> siga reproduciéndolo en la
+  // página en vez de forzar la descarga al pedirlo.
+  res.setHeader('Content-Disposition', `inline; filename="${generation.id}.${generation.format}"`)
   res.sendFile(path.resolve(generationsDir, generation.fileName), (err) => {
     // sendFile también llama a este callback con error cuando el cliente aborta
     // la petición a medio envío (p. ej. el <audio> corta la conexión anterior al
