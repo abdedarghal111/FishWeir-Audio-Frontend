@@ -8,9 +8,9 @@
     <a href="#qué-es-esto">Qué es esto</a> ·
     <a href="#sobre-el-nombre">Sobre el nombre</a> ·
     <a href="#funcionalidades">Funcionalidades</a> ·
-    <a href="#tecnologías-usadas">Tecnologías usadas</a> ·
     <a href="#modo-de-uso">Modo de uso</a> ·
-    <a href="#estructura">Estructura</a>
+    <a href="#tecnologías-usadas">Tecnologías usadas</a> ·
+    <a href="#galería">Galería</a>
 </p>
 
 ## Qué es esto
@@ -35,12 +35,6 @@ Aclarado esto por si acaso: no tiene ninguna intención maliciosa ni busca insin
 - Guardar voces de otros autores por enlace o ID de fish.audio y usarlas igual que las propias.
 - Marcar modelos y voces como favoritos para elegirlos rápido sin buscar en los selects.
 - Guardar y consultar el historial de audios generados, con reproducción y descarga (wav o mp3 comprimido) y guardando todos los metadatos.
-
-## Tecnologías usadas
-
-- **Backend:** Node.js, Express 5, multer, SDK `fish-audio`, SDK `openai` (para DeepSeek), TypeScript.
-- **Frontend:** Svelte 5, Vite, Bootstrap 5, Font Awesome, ffmpeg.wasm, TypeScript.
-- **Gestor de paquetes:** pnpm.
 
 ## Modo de uso
 
@@ -67,10 +61,36 @@ Otros comandos útiles:
 - `pnpm check:backend` — comprueba tipos del backend.
 - `pnpm check:frontend` — comprueba tipos y el componente Svelte del frontend.
 
-## Estructura
+## Tecnologías usadas
 
-```
-backend/    servidor Express + cliente Fish Audio (backend/server.ts)
-frontend/   app Svelte (frontend/src/App.svelte)
-docs/       guías de referencia (p. ej. emociones y tono para Fish Audio)
-```
+- **Backend:** Node.js, Express 5, multer, SDK `fish-audio`, SDK `openai` (para DeepSeek), TypeScript — en `backend/` (`backend/server.ts`).
+- **Frontend:** Svelte 5, Vite, Bootstrap 5, Font Awesome, ffmpeg.wasm, TypeScript — en `frontend/` (`frontend/src/App.svelte`).
+- **Gestor de paquetes:** pnpm.
+- **Docs:** guías de referencia en `docs/` (p. ej. emociones y tono para Fish Audio).
+
+## Galería
+
+<p align="center">
+    <img src="./.github/images/screenshot2.png" width="800"><br>
+    <em>Pestaña Generar: modelo, voz clonada, texto con marcadores y opciones avanzadas de generación.</em>
+</p>
+
+<p align="center">
+    <img src="./.github/images/screenshot1.png" width="800"><br>
+    <em>Mejorar con IA: compara el resultado con marcadores de emoción frente al texto original antes de aceptarlo.</em>
+</p>
+
+<p align="center">
+    <img src="./.github/images/screenshot5.png" width="800"><br>
+    <em>Mis voces: clona una voz nueva a partir de audios de referencia.</em>
+</p>
+
+<p align="center">
+    <img src="./.github/images/screenshot4.png" width="800"><br>
+    <em>Voces compartidas: guarda voces de otros autores por enlace o ID y úsalas igual que las propias.</em>
+</p>
+
+<p align="center">
+    <img src="./.github/images/screenshot3.png" width="800"><br>
+    <em>Historial de audios generados, con parámetros, reproducción y descarga.</em>
+</p>
