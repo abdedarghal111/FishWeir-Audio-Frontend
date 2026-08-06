@@ -70,6 +70,7 @@ const FISH_ERROR_MESSAGES: Record<number, string> = {
   402: 'Sin crédito suficiente en la cuenta de Fish Audio (revisa tu saldo en fish.audio).',
   403: 'Esta API key no tiene permiso para usar ese recurso.',
   404: 'Modelo o voz no encontrado (puede que ya no exista o no sea tuyo).',
+  413: 'El archivo es demasiado grande para Fish Audio. Prueba con un audio más corto o expórtalo comprimido (p. ej. MP3 en vez de WAV).',
   422: 'Los datos enviados no son válidos.',
   429: 'Demasiadas peticiones a Fish Audio, espera unos segundos y reintenta.',
 }
