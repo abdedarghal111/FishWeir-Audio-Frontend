@@ -34,6 +34,17 @@ export type Generation = {
   format: 'wav'
   fileName: string
   sizeBytes: number
+  // Parámetros avanzados de generación (ver docs/emociones-y-tono-fish-audio.md
+  // §5), guardados junto al resto de la metadata para poder ver con qué
+  // ajustes se generó cada audio.
+  speed?: number
+  volume?: number
+  temperature?: number
+  topP?: number
+  chunkLength?: number
+  normalize?: boolean
+  latency?: 'normal' | 'balanced'
+  sampleRate?: number
 }
 
 export const STATE_LABELS: Record<string, string> = {

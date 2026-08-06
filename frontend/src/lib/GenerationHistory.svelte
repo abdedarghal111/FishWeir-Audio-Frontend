@@ -45,6 +45,23 @@
               <span>{formatDate(g.createdAt)}</span>
               <span>{formatBytes(g.sizeBytes)}</span>
             </div>
+
+            {#if g.speed !== undefined || g.volume !== undefined || g.temperature !== undefined || g.topP !== undefined || g.chunkLength !== undefined || g.normalize !== undefined || g.latency !== undefined || g.sampleRate !== undefined}
+              <details class="small text-body-secondary mb-2">
+                <summary style="cursor: pointer;"><i class="fa-solid fa-gear" aria-hidden="true"></i> Parámetros</summary>
+                <ul class="mb-0 ps-3">
+                  {#if g.speed !== undefined}<li>Velocidad: {g.speed}×</li>{/if}
+                  {#if g.volume !== undefined}<li>Volumen: {g.volume} dB</li>{/if}
+                  {#if g.temperature !== undefined}<li>Temperature: {g.temperature}</li>{/if}
+                  {#if g.topP !== undefined}<li>Top P: {g.topP}</li>{/if}
+                  {#if g.chunkLength !== undefined}<li>Chunk length: {g.chunkLength}</li>{/if}
+                  {#if g.normalize !== undefined}<li>Normalizar: {g.normalize ? 'sí' : 'no'}</li>{/if}
+                  {#if g.latency !== undefined}<li>Latencia: {g.latency}</li>{/if}
+                  {#if g.sampleRate !== undefined}<li>Sample rate: {g.sampleRate} Hz</li>{/if}
+                </ul>
+              </details>
+            {/if}
+
             <audio controls preload="none" src="/api/generations/{g.id}/audio" class="w-100 mt-auto"></audio>
           </div>
         </div>

@@ -169,6 +169,17 @@ type Generation = {
   format: 'wav'
   fileName: string
   sizeBytes: number
+  // Parámetros avanzados de generación (ver docs/emociones-y-tono-fish-audio.md
+  // §5), guardados junto al resto para poder ver con qué ajustes se generó
+  // cada audio del historial.
+  speed?: number
+  volume?: number
+  temperature?: number
+  topP?: number
+  chunkLength?: number
+  normalize?: boolean
+  latency?: 'normal' | 'balanced'
+  sampleRate?: number
 }
 const generationsDir = path.resolve(import.meta.dirname, 'data/generations')
 const generationsPath = path.resolve(import.meta.dirname, 'data/generations.json')
@@ -219,7 +230,20 @@ app.delete('/api/generations/:id', async (req, res) => {
 
 // --- Texto a voz ---
 app.post('/api/tts', async (req, res) => {
-  const { text, referenceId, model, voiceTitle } = req.body ?? {}
+  const {
+    text,
+    referenceId,
+    model,
+    voiceTitle,
+    speed,
+    volume,
+    temperature,
+    topP,
+    chunkLength,
+    normalize,
+    latency,
+    sampleRate,
+  } = req.body ?? {}
   if (typeof text !== 'string' || !text.trim()) {
     res.status(400).json({ message: 'Falta el campo "text".' })
     return
@@ -229,9 +253,27 @@ app.post('/api/tts', async (req, res) => {
   // formato/bitrate de salida, así que no cuesta más pedir la máxima calidad.
   const format = 'wav' as const
 
+  // Parámetros avanzados (velocidad/volumen/temperature/...), documentados en
+  // docs/emociones-y-tono-fish-audio.md §5. Solo se incluyen si llegan con el
+  // tipo esperado, para no mandar `undefined`/basura al SDK.
+  const prosody: { speed?: number; volume?: number } = {}
+  if (typeof speed === 'number') prosody.speed = speed
+  if (typeof volume === 'number') prosody.volume = volume
+
   try {
     const audio = await fishAudio.textToSpeech.convert(
-      { text, reference_id: referenceId || undefined, format },
+      {
+        text,
+        reference_id: referenceId || undefined,
+        format,
+        ...(Object.keys(prosody).length > 0 ? { prosody } : {}),
+        temperature: typeof temperature === 'number' ? temperature : undefined,
+        top_p: typeof topP === 'number' ? topP : undefined,
+        chunk_length: typeof chunkLength === 'number' ? chunkLength : undefined,
+        normalize: typeof normalize === 'boolean' ? normalize : undefined,
+        latency: latency === 'normal' || latency === 'balanced' ? latency : undefined,
+        sample_rate: typeof sampleRate === 'number' ? sampleRate : undefined,
+      },
       (model as FishModel as unknown as Backends) || undefined,
     )
 
@@ -259,6 +301,14 @@ app.post('/api/tts', async (req, res) => {
           format,
           fileName,
           sizeBytes: size,
+          speed: typeof speed === 'number' ? speed : undefined,
+          volume: typeof volume === 'number' ? volume : undefined,
+          temperature: typeof temperature === 'number' ? temperature : undefined,
+          topP: typeof topP === 'number' ? topP : undefined,
+          chunkLength: typeof chunkLength === 'number' ? chunkLength : undefined,
+          normalize: typeof normalize === 'boolean' ? normalize : undefined,
+          latency: latency === 'normal' || latency === 'balanced' ? latency : undefined,
+          sampleRate: typeof sampleRate === 'number' ? sampleRate : undefined,
         })
         await writeGenerations(generations)
       } catch (err) {
