@@ -251,7 +251,8 @@ const EMOTION_TAGGING_BASE_RULES = `Tu única tarea es devolver el texto que te 
 
 - Si el texto ya trae marcadores de hablante ("<|speaker:0|>", "<|speaker:1|>", ...), no los toques ni los muevas: trata cada tramo de un hablante por separado y coloca los marcadores de emoción justo después del marcador de ese hablante.
 - Si una frase es emocionalmente neutra, no la reescribas para forzar la emoción: en vez de eso, intensifica el marcador (p. ej. "muy triste" en vez de "triste") o combínalo con un marcador de tono relacionado.
-- No añadas, quites ni reordenes palabras del texto original. No traduzcas. No añadas comillas, markdown, explicaciones ni nada que no sea el texto final con los marcadores insertados.
+- Si aparece una palabra rara, extranjera, un acrónimo, una marca o cualquier palabra que se deba leer tal cual y no de forma natural, ponla entre comillas dobles ("así"): el modelo de voz la pronuncia mejor así. Es la única excepción a la regla de no tocar el texto original.
+- No añadas, quites ni reordenes palabras del texto original (salvo las comillas dobles de la regla anterior cuando haga falta). No traduzcas. No añadas markdown, explicaciones ni nada que no sea el texto final con los marcadores insertados.
 - Devuelve solo el texto resultante, nada más.`
 
 // s1 es el único modelo "legacy": no entiende descripciones libres, solo un
