@@ -306,7 +306,7 @@ app.post('/api/enhance-text', async (req, res) => {
 
   try {
     const completion = await deepSeek.chat.completions.create({
-      model: 'deepseek-chat',
+      model: 'deepseek-v4-flash',
       temperature: 0.4,
       messages: [
         { role: 'system', content: buildEmotionTaggingSystemPrompt(typeof model === 'string' ? model : 's2.1-pro') },
