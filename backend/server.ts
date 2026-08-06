@@ -197,7 +197,14 @@ app.get('/api/generations/:id/audio', async (req, res) => {
   }
   res.setHeader('Content-Type', 'audio/wav')
   res.sendFile(path.resolve(generationsDir, generation.fileName), (err) => {
-    if (err) res.status(404).json({ message: 'El archivo de audio ya no está disponible.' })
+    // sendFile también llama a este callback con error cuando el cliente aborta
+    // la petición a medio envío (p. ej. el <audio> corta la conexión anterior al
+    // hacer play/pause/seek seguidos) — en ese caso las cabeceras ya se
+    // mandaron, así que intentar responder de nuevo revienta con
+    // ERR_HTTP_HEADERS_SENT. Solo se responde si de verdad no se ha enviado nada.
+    if (err && !res.headersSent) {
+      res.status(404).json({ message: 'El archivo de audio ya no está disponible.' })
+    }
   })
 })
 
