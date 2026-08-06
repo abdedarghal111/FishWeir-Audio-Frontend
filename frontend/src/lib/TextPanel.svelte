@@ -83,7 +83,7 @@
 {#if favorites.length > 0}
   <section class="card mb-4">
     <div class="card-body">
-      <h3 class="h6 card-title mb-2">⭐ Favoritos</h3>
+      <h3 class="h6 card-title mb-2"><i class="fa-solid fa-star" aria-hidden="true"></i> Favoritos</h3>
       <div class="d-flex flex-wrap gap-2">
         {#each favorites as fav (fav.key)}
           <div class="btn-group" role="group">
@@ -94,7 +94,7 @@
               class:btn-outline-primary={!((fav.type === 'model' && model === fav.id) || (fav.type === 'voice' && referenceId === fav.id))}
               onclick={() => selectFavorite(fav)}
             >
-              {fav.type === 'model' ? '🤖' : '🎙️'} {fav.label}
+              <i class="fa-solid {fav.type === 'model' ? 'fa-robot' : 'fa-microphone'}" aria-hidden="true"></i> {fav.label}
             </button>
             <button
               type="button"
@@ -102,7 +102,7 @@
               title="Quitar de favoritos"
               onclick={() => onToggleFavorite(fav.type, fav.id, fav.label)}
             >
-              ×
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
           </div>
         {/each}
@@ -139,7 +139,7 @@
           title={isFavorite('model', model) ? 'Quitar de favoritos' : 'Añadir a favoritos'}
           onclick={() => onToggleFavorite('model', model, MODELS.find((m) => m.value === model)?.label ?? model)}
         >
-          {isFavorite('model', model) ? '★' : '☆'}
+          <i class="fa-{isFavorite('model', model) ? 'solid' : 'regular'} fa-star" aria-hidden="true"></i>
         </button>
       </div>
     </div>

@@ -36,12 +36,12 @@
             <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
               <p class="mb-0" title={g.text}>{g.text}</p>
               <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick={() => deleteGeneration(g.id)}>
-                Eliminar
+                <i class="fa-solid fa-trash" aria-hidden="true"></i> Eliminar
               </button>
             </div>
             <div class="d-flex flex-wrap gap-2 small text-body-secondary mb-2">
-              <span>🤖 {g.model}</span>
-              <span>🎙️ {g.voiceTitle ?? 'voz por defecto'}</span>
+              <span><i class="fa-solid fa-robot" aria-hidden="true"></i> {g.model}</span>
+              <span><i class="fa-solid fa-microphone" aria-hidden="true"></i> {g.voiceTitle ?? 'voz por defecto'}</span>
               <span>{formatDate(g.createdAt)}</span>
               <span>{formatBytes(g.sizeBytes)}</span>
             </div>

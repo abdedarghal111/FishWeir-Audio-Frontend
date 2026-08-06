@@ -45,7 +45,7 @@
             title={favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
             onclick={onToggleFavorite}
           >
-            {favorite ? '★' : '☆'}
+            <i class="fa-{favorite ? 'solid' : 'regular'} fa-star" aria-hidden="true"></i>
           </button>
           {#if onSelect}
             <button type="button" class="btn btn-sm" class:btn-primary={selected} class:btn-outline-primary={!selected} onclick={onSelect}>
@@ -86,10 +86,10 @@
 
       {#if !compact}
         <div class="d-flex flex-wrap gap-2 meta text-body-secondary mb-1">
-          <span>❤️ {voice.likeCount ?? 0} me gusta</span>
-          <span>🔖 {voice.markCount ?? 0} guardados</span>
-          <span>🔁 {voice.sharedCount ?? 0} compartidos</span>
-          <span>▶️ {voice.taskCount ?? 0} generaciones</span>
+          <span><i class="fa-solid fa-heart" aria-hidden="true"></i> {voice.likeCount ?? 0} me gusta</span>
+          <span><i class="fa-solid fa-bookmark" aria-hidden="true"></i> {voice.markCount ?? 0} guardados</span>
+          <span><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> {voice.sharedCount ?? 0} compartidos</span>
+          <span><i class="fa-solid fa-play" aria-hidden="true"></i> {voice.taskCount ?? 0} generaciones</span>
         </div>
 
         <div class="d-flex flex-wrap gap-2 meta text-body-secondary mb-1">
@@ -120,7 +120,7 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          🔗 Ver en fish.audio
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Ver en fish.audio
         </a>
       {/if}
     </div>
