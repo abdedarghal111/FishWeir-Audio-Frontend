@@ -190,10 +190,7 @@
 </script>
 
 <main class="container py-4">
-  <h1 class="mb-4 d-flex align-items-center gap-2">
-    <img src="/logo.png" alt="Logo" width="40" height="40" />
-    FishWeir Audio Frontend
-  </h1>
+  <h1 class="mb-4">FishWeir Audio Frontend</h1>
 
   <ul class="nav nav-tabs mb-4">
     <li class="nav-item">
