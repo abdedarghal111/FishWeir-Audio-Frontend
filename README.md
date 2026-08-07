@@ -38,6 +38,8 @@ Aclarado esto por si acaso: no tiene ninguna intención maliciosa ni busca insin
 
 ## Modo de uso
 
+### General
+
 1. Instala las dependencias:
    ```
    pnpm install
@@ -47,15 +49,30 @@ Aclarado esto por si acaso: no tiene ninguna intención maliciosa ni busca insin
    cp backend/.env.example backend/.env
    ```
    Y edita `backend/.env` con tu API key de [fish.audio/app/api-keys](https://fish.audio/app/api-keys) (y el puerto si quieres cambiarlo). También puedes añadir una API key de [DeepSeek](https://platform.deepseek.com/api_keys) (opcional) para activar el botón "Mejorar con IA".
-3. Arranca todo en modo desarrollo (backend + frontend a la vez):
-   ```
-   pnpm dev
-   ```
-4. Para producción, compila el frontend y arranca el backend (que sirve el build):
-   ```
-   pnpm build
-   pnpm start
-   ```
+
+### Producción
+
+La vía rápida: usa el script de la raíz del proyecto para tu sistema, con doble click o desde terminal — `start-prod.sh` (Linux/macOS) o `start-prod.ps1` (Windows). Compilan el frontend y arrancan el backend en producción, dejando la terminal abierta con los logs; al cerrarla se detiene el servidor.
+
+Si prefieres hacerlo a mano, el equivalente es:
+```
+pnpm run start
+```
+
+### Desarrollo
+
+Se recomienda arrancar backend y frontend por separado, cada uno en su propia terminal, así se ven mejor los errores de cada lado:
+```
+pnpm run dev:backend
+```
+```
+pnpm run dev:frontend
+```
+
+Si prefieres arrancarlos juntos en una sola terminal (con la salida de ambos mezclada):
+```
+pnpm dev
+```
 
 Otros comandos útiles:
 - `pnpm check:backend` — comprueba tipos del backend.
