@@ -1,11 +1,5 @@
-// --- Voces compartidas (de otros autores, guardadas por enlace o ID) ---
-// La API de Fish Audio no distingue "tuya" de "de otro autor" para /model/{id}:
-// si el ID es válido y la voz es pública (o no listada, con el enlace), se puede
-// pedir su info y usarla como reference_id igual que una voz propia. Se guarda
-// aquí el snapshot completo (título, portada, autor...) en vez de solo el ID:
-// así el listado se sirve directo del JSON sin depender de volver a llamar a
-// Fish Audio cada vez (que si falla por lo que sea, hacía "desaparecer" voces
-// que en realidad seguían guardadas).
+// Cualquier voz pública o no listada de Fish Audio es válida como reference_id, no solo las
+// propias; se persiste el snapshot completo para listarlas sin volver a llamar a Fish Audio.
 import path from 'node:path'
 import { Router } from 'express'
 import { createJsonStore } from '../lib/json-store.ts'
@@ -14,9 +8,7 @@ import { requireFishAudio, sendFishAudioError, toVoiceModel, type VoiceModel } f
 const sharedVoicesPath = path.resolve(import.meta.dirname, '../data/shared-voices.json')
 const sharedVoicesStore = createJsonStore<VoiceModel>(sharedVoicesPath)
 
-// Acepta el ID a secas o cualquiera de los formatos de enlace de fish.audio:
-// la página pública de una voz (https://fish.audio/m/<id>) y el estudio de
-// TTS, que lleva el ID en un parámetro de la URL (?modelId=<id>).
+// Acepta el ID directamente, la página pública (/m/<id>) o el estudio de TTS (?modelId=<id>).
 function extractVoiceId(input: string): string {
   const trimmed = input.trim()
 
@@ -28,11 +20,10 @@ function extractVoiceId(input: string): string {
     const fromPath = url.pathname.match(/\/m\/([^/?#]+)/)
     if (fromPath) return fromPath[1]
   } catch {
-    // No es una URL (probablemente ya es el ID a secas); se sigue abajo.
+    // No es una URL: se asume que ya es el ID.
   }
 
-  // Último recurso: los IDs de Fish Audio son 32 caracteres hexadecimales,
-  // así que se busca uno en cualquier parte del texto pegado.
+  // Último recurso: buscar un ID hexadecimal de 32 caracteres en el texto.
   const hexMatch = trimmed.match(/[0-9a-f]{32}/i)
   return hexMatch ? hexMatch[0] : trimmed
 }

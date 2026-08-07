@@ -3,7 +3,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // fija la raíz en esta carpeta (frontend/) sin importar desde dónde se invoque
+  // Fija la raíz en esta carpeta (frontend/) sin importar desde dónde se invoque
   // el comando `vite` — así solo hace falta un package.json en la raíz del repo.
   root: import.meta.dirname,
   plugins: [svelte()],

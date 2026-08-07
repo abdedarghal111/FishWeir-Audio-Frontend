@@ -1,8 +1,3 @@
-// --- Favoritos ---
-// Modelos base (backends de Fish Audio, no tienen _id propio) y voces clonadas
-// que el usuario marca para tenerlas a mano en un panel aparte. No es algo que
-// ofrezca la API de Fish Audio (no hay forma de listar "mis marcados/likes"),
-// así que se guarda aquí en un JSON propio del backend.
 import path from 'node:path'
 import { Router } from 'express'
 import { createJsonStore } from '../lib/json-store.ts'

@@ -1,4 +1,3 @@
-// --- Voces clonadas ---
 import { Router } from 'express'
 import multer from 'multer'
 import { requireFishAudio, sendFishAudioError, toVoiceModel } from '../lib/fish-audio-client.ts'
@@ -37,8 +36,7 @@ router.post('/api/voices', upload.array('voices'), async (req, res) => {
   try {
     const voice = await client.voices.ivc.create({
       title,
-      // Privado por defecto: un modelo público exige además una cover_image,
-      // que aquí no pedimos, y además no queremos publicar las voces por defecto.
+      // Privado por defecto: un modelo público requeriría además una cover_image no solicitada aquí.
       visibility: 'private',
       voices: files.map(
         (file) => new File([new Uint8Array(file.buffer)], file.originalname, { type: file.mimetype }),

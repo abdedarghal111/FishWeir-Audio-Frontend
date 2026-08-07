@@ -1,14 +1,5 @@
-// Persistencia del historial de audios generados: cada generación se guarda
-// en disco (el .wav, gestionado directamente por routes/tts.ts) más una
-// entrada de metadata (texto, modelo, voz usada, fecha) en un JSON, mismo
-// patrón que favoritos y voces compartidas. Así se puede volver a
-// escuchar/descargar más tarde sin depender de que el navegador siga
-// teniendo el blob en memoria.
-//
-// Vive en su propio módulo (a diferencia de favoritos o voces compartidas)
-// porque es el único store que usan dos routers distintos: routes/tts.ts
-// escribe una entrada nueva al generar audio, routes/generations.ts lee y
-// borra del mismo JSON.
+// Cada audio generado se guarda en disco (.wav) más su metadata en un JSON.
+// Módulo propio porque lo usan dos routers: tts.ts escribe, generations.ts lee/borra.
 import path from 'node:path'
 import { createJsonStore } from './json-store.ts'
 
@@ -22,9 +13,7 @@ export type Generation = {
   format: 'wav'
   fileName: string
   sizeBytes: number
-  // Parámetros avanzados de generación (ver docs/emociones-y-tono-fish-audio.md
-  // §5), guardados junto al resto para poder ver con qué ajustes se generó
-  // cada audio del historial.
+  // Parámetros avanzados de generación (docs/emociones-y-tono-fish-audio.md §5).
   speed?: number
   volume?: number
   temperature?: number

@@ -1,18 +1,6 @@
 <script lang="ts">
-  // Componente raíz: solo la capa de datos (llamadas al backend con fetch) y
-  // las pestañas. La UI en sí vive en frontend/src/lib/*.svelte:
-  // - TextPanel: pestaña "Generar" — el texto/modelo (izquierda) y, dentro
-  //   del mismo formulario, la lista compacta (foto + nombre, con filtro)
-  //   para elegir rápido la voz clonada (derecha, vía VoiceQuickPicker).
-  // - MyVoices: pestaña "Mis voces" — clonar una voz nueva y la lista de
-  //   las que ya tienes, con todos sus datos y acciones.
-  // - SharedVoices: pestaña "Voces compartidas" — añadir por enlace/ID,
-  //   filtrar y la lista de las guardadas.
-  // - GenerationHistory: pestaña "Historial" — todos los audios generados.
-  //
-  // referenceId (la voz clonada elegida) se puede fijar desde varias
-  // pestañas, así que vive aquí y viaja a todas. Cada vez que TextPanel
-  // genera un audio nuevo, avisa con onGenerated para refrescar el historial.
+  // Raíz: capa de datos y pestañas; la interfaz de cada sección vive en lib/*.svelte
+  // (TextPanel = Generar, MyVoices = Mis voces, SharedVoices = Compartidas, GenerationHistory = Historial).
   import GenerationHistory from './lib/GenerationHistory.svelte'
   import MyVoices from './lib/MyVoices.svelte'
   import SharedVoices from './lib/SharedVoices.svelte'
@@ -21,13 +9,8 @@
 
   let tab: 'generar' | 'mis-voces' | 'compartidas' | 'historial' = $state('generar')
 
-  // --- Notificaciones globales de error (toasts) ---
-  // Cada formulario ya muestra su propio error junto a sí mismo, pero esa
-  // alerta vive en el estado del componente: si el usuario cambia de pestaña
-  // antes de que termine una petición larga (p. ej. subir un audio de varios
-  // minutos para clonar una voz), el componente se desmonta y el aviso se
-  // pierde sin que nadie lo vea. Este toast vive aquí arriba, en App.svelte,
-  // así que sobrevive al cambio de pestaña y siempre es visible.
+  // Los toasts se gestionan aquí, no en cada formulario, para que sigan visibles si el
+  // usuario cambia de pestaña antes de que termine una petición y el formulario se desmonte.
   let toasts: { id: string; message: string }[] = $state([])
 
   function notifyError(message: string) {
@@ -40,20 +23,13 @@
     toasts = toasts.filter((t) => t.id !== id)
   }
 
-  // La voz clonada elegida se recuerda entre visitas (localStorage), para no
-  // tener que volver a seleccionarla cada vez que se abre la página.
   let referenceId = $state(loadPersisted('referenceId', ''))
   $effect(() => savePersisted('referenceId', referenceId))
 
-  // --- Disponibilidad de Fish Audio ---
-  // Generar audio, clonar voces y añadir voces compartidas nuevas necesitan
-  // la API key de Fish Audio configurada en el backend (FISH_API_KEY); si
-  // falta, esos formularios se deshabilitan con un mensaje claro en vez de
-  // dejar que fallen. El resto (favoritos, historial, voces compartidas ya
-  // guardadas) no depende de ella y sigue funcionando igual.
+  // Generar audio, clonar voces y añadir voces compartidas requieren FISH_API_KEY en el
+  // backend; si falta, esos formularios se deshabilitan (el resto sigue funcionando).
   let fishAvailable = $state(true)
 
-  // --- Voces propias ---
   let voices: Voice[] = $state([])
 
   async function loadVoices() {
@@ -110,7 +86,6 @@
     }
   }
 
-  // --- Voces compartidas (de otros autores, guardadas por enlace o ID) ---
   let sharedVoices: Voice[] = $state([])
 
   async function loadSharedVoices() {
@@ -149,7 +124,6 @@
     }
   }
 
-  // --- Favoritos (modelos base y voces clonadas, para elegir rápido) ---
   let favorites: Favorite[] = $state([])
 
   async function loadFavorites() {
@@ -183,14 +157,10 @@
         favorites = await res.json()
       }
     } catch (err) {
-      // Si falla, el estado de favoritos no cambia, pero al menos se avisa
-      // (antes fallaba en silencio y no había ninguna forma de saber por qué
-      // el botón de favorito no había hecho nada).
       notifyError(err instanceof Error ? err.message : 'Error actualizando favoritos')
     }
   }
 
-  // --- Historial de audios generados (guardados en el servidor) ---
   let generations: Generation[] = $state([])
 
   async function loadGenerations() {
@@ -271,9 +241,6 @@
   {/if}
 </main>
 
-<!-- Toasts globales de error: fijos arriba a la derecha, visibles en
-     cualquier pestaña y aunque el componente que disparó el error ya no
-     esté montado. Se cierran solos a los 10s o con la ×. -->
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
   {#each toasts as t (t.id)}
     <div class="alert alert-danger d-flex align-items-start gap-2 shadow-sm mb-2" role="alert">

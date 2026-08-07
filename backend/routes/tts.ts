@@ -1,4 +1,3 @@
-// --- Texto a voz ---
 import { createWriteStream } from 'node:fs'
 import { mkdir, stat } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
@@ -34,13 +33,9 @@ router.post('/api/tts', async (req, res) => {
     return
   }
 
-  // WAV sin comprimir: Fish Audio cobra por el texto de entrada, no por el
-  // formato/bitrate de salida, así que no cuesta más pedir la máxima calidad.
+  // Sin comprimir: Fish Audio factura por texto de entrada, no por la salida.
   const format = 'wav' as const
 
-  // Parámetros avanzados (velocidad/volumen/temperature/...), documentados en
-  // docs/emociones-y-tono-fish-audio.md §5. Solo se incluyen si llegan con el
-  // tipo esperado, para no mandar `undefined`/basura al SDK.
   const prosody: { speed?: number; volume?: number } = {}
   if (typeof speed === 'number') prosody.speed = speed
   if (typeof volume === 'number') prosody.volume = volume
@@ -67,10 +62,8 @@ router.post('/api/tts', async (req, res) => {
     await mkdir(generationsDir, { recursive: true })
 
     res.setHeader('Content-Type', 'audio/wav')
-    // El frontend recibe aquí el audio en crudo (no JSON), así que la única
-    // forma de que sepa con qué id se ha guardado esta generación en el
-    // historial es leerlo de una cabecera — lo usa para nombrar el archivo
-    // al descargarlo en vez de un nombre genérico.
+    // La respuesta es audio en crudo, no JSON: el id viaja en una cabecera
+    // para que el frontend nombre el archivo al descargarlo.
     res.setHeader('X-Generation-Id', id)
     res.setHeader('Access-Control-Expose-Headers', 'X-Generation-Id')
     const nodeStream = Readable.from(audio)

@@ -1,8 +1,6 @@
 <script lang="ts">
-  // Lista compacta para la pestaña "Generar": tus voces y las compartidas
-  // mezcladas, mostrando solo la foto y el nombre, con un filtro para
-  // encontrar rápido cuál usar. El resto de datos/acciones (favoritos,
-  // eliminar, añadir por enlace...) viven en sus propias pestañas.
+  // Lista compacta (foto + nombre + filtro) para elegir voz en la pestaña "Generar";
+  // el resto de datos/acciones viven en sus propias pestañas.
   import type { Voice } from './types'
 
   let {
@@ -14,8 +12,7 @@
     voices: Voice[]
     sharedVoices: Voice[]
     referenceId: string
-    // Se llama tras elegir una voz (o la de por defecto), además de fijar
-    // referenceId — así quien la use en un modal puede cerrarlo al elegir.
+    // Se llama tras elegir voz, además de fijar referenceId (p. ej. para cerrar un modal).
     onSelect?: () => void
   } = $props()
 

@@ -1,7 +1,5 @@
 <script lang="ts">
-  // Pestaña "Mis voces": clonar una voz nueva (arriba) y, debajo, la lista de
-  // tus voces ya clonadas, con botón de "Seleccionar" para fijarla como voz
-  // clonada a usar en la pestaña "Generar".
+  // Pestaña "Mis voces": clonar una voz (arriba) + lista de las ya clonadas.
   import type { Favorite, Voice } from './types'
   import CloneVoiceForm from './CloneVoiceForm.svelte'
   import VoiceCard from './VoiceCard.svelte'
@@ -18,9 +16,7 @@
   }: {
     voices: Voice[]
     favorites: Favorite[]
-    // Si es `false`, falta la API key de Fish Audio en el backend: no se
-    // pueden clonar ni listar voces (ver GET /api/fish-audio/status en
-    // backend/server.ts).
+    // Si es `false`, falta FISH_API_KEY en el backend: no se pueden clonar ni listar voces.
     fishAvailable: boolean
     referenceId: string
     isFavorite: (type: Favorite['type'], id: string) => boolean
