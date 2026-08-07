@@ -1,4 +1,3 @@
-// --- Historial de audios generados ---
 // Lee/borra lo que routes/tts.ts escribe al generar audio (ver
 // lib/generations-store.ts para la persistencia compartida entre ambos).
 import path from 'node:path'

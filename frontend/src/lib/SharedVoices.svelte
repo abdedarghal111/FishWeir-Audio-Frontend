@@ -29,7 +29,6 @@
     onRemoveSharedVoice: (id: string) => Promise<void>
   } = $props()
 
-  // --- Añadir voz compartida por enlace/ID ---
   let sharedVoiceInput = $state('')
   let sharedVoiceLoading = $state(false)
   let sharedVoiceError = $state('')
@@ -58,7 +57,6 @@
     }
   }
 
-  // --- Buscador ---
   let sharedVoiceSearch = $state('')
   let filteredSharedVoices = $derived(
     sharedVoices.filter((v) => v.title.toLowerCase().includes(sharedVoiceSearch.trim().toLowerCase())),

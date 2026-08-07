@@ -1,4 +1,3 @@
-// --- Mejora de texto con IA (opcional, vía DeepSeek) ---
 // Reutiliza como prompt las reglas de docs/emociones-y-tono-fish-audio.md
 // §1-3 (sintaxis de tags según modelo, catálogo de emociones/tonos y reglas
 // de colocación) para que DeepSeek devuelva el mismo texto pero con

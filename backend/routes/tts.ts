@@ -1,4 +1,3 @@
-// --- Texto a voz ---
 import { createWriteStream } from 'node:fs'
 import { mkdir, stat } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'

@@ -1,4 +1,3 @@
-// --- Voces compartidas (de otros autores, guardadas por enlace o ID) ---
 // La API de Fish Audio no distingue "tuya" de "de otro autor" para /model/{id}:
 // si el ID es válido y la voz es pública (o no listada, con el enlace), se puede
 // pedir su info y usarla como reference_id igual que una voz propia. Se guarda

@@ -1,5 +1,3 @@
-// Tipos y constantes compartidas entre los componentes del frontend.
-
 export type Voice = {
   id: string
   title: string

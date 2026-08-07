@@ -21,7 +21,6 @@
 
   let tab: 'generar' | 'mis-voces' | 'compartidas' | 'historial' = $state('generar')
 
-  // --- Notificaciones globales de error (toasts) ---
   // Cada formulario ya muestra su propio error junto a sí mismo, pero esa
   // alerta vive en el estado del componente: si el usuario cambia de pestaña
   // antes de que termine una petición larga (p. ej. subir un audio de varios
@@ -45,7 +44,6 @@
   let referenceId = $state(loadPersisted('referenceId', ''))
   $effect(() => savePersisted('referenceId', referenceId))
 
-  // --- Disponibilidad de Fish Audio ---
   // Generar audio, clonar voces y añadir voces compartidas nuevas necesitan
   // la API key de Fish Audio configurada en el backend (FISH_API_KEY); si
   // falta, esos formularios se deshabilitan con un mensaje claro en vez de
@@ -53,7 +51,6 @@
   // guardadas) no depende de ella y sigue funcionando igual.
   let fishAvailable = $state(true)
 
-  // --- Voces propias ---
   let voices: Voice[] = $state([])
 
   async function loadVoices() {
@@ -110,7 +107,6 @@
     }
   }
 
-  // --- Voces compartidas (de otros autores, guardadas por enlace o ID) ---
   let sharedVoices: Voice[] = $state([])
 
   async function loadSharedVoices() {
@@ -149,7 +145,6 @@
     }
   }
 
-  // --- Favoritos (modelos base y voces clonadas, para elegir rápido) ---
   let favorites: Favorite[] = $state([])
 
   async function loadFavorites() {
@@ -190,7 +185,6 @@
     }
   }
 
-  // --- Historial de audios generados (guardados en el servidor) ---
   let generations: Generation[] = $state([])
 
   async function loadGenerations() {

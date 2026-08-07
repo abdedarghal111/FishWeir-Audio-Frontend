@@ -1,4 +1,3 @@
-// --- Voces clonadas ---
 import { Router } from 'express'
 import multer from 'multer'
 import { requireFishAudio, sendFishAudioError, toVoiceModel } from '../lib/fish-audio-client.ts'
