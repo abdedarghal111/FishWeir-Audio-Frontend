@@ -1,5 +1,4 @@
-// Cliente de Fish Audio: instanciarlo, mapear sus entidades y traducir sus
-// errores a HTTP. La API key SOLO vive aquí, nunca llega al navegador.
+// Cliente de Fish Audio: instanciarlo, mapear sus entidades y traducir sus errores a HTTP.
 import { FishAudioClient, FishAudioError, FishAudioTimeoutError } from 'fish-audio'
 import type { ModelEntity } from 'fish-audio'
 import type { Response } from 'express'

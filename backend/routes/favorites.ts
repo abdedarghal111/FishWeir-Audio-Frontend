@@ -1,4 +1,3 @@
-// Fish Audio no tiene un endpoint de "mis marcados", así que se guardan aquí.
 import path from 'node:path'
 import { Router } from 'express'
 import { createJsonStore } from '../lib/json-store.ts'
