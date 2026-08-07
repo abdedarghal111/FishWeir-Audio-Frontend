@@ -1,7 +1,5 @@
 <script lang="ts">
-  // Pestaña "Generar": el texto/modelo y, dentro del mismo formulario, la
-  // lista compacta para elegir la voz clonada (VoiceQuickPicker) — así el
-  // envío usa directamente lo que haya en referenceId al generar.
+  // Pestaña "Generar": texto/modelo + selector compacto de voz (VoiceQuickPicker) en el mismo formulario.
   import { MODELS, errorMessage, loadPersisted, savePersisted, type Favorite, type Voice } from './types'
   import AudioPlayer from './AudioPlayer.svelte'
   import EnhanceTextModal from './EnhanceTextModal.svelte'
@@ -21,30 +19,22 @@
     voices: Voice[]
     sharedVoices: Voice[]
     favorites: Favorite[]
-    // Si es `false`, falta la API key de Fish Audio en el backend: se
-    // deshabilita "Generar audio" con un mensaje claro en vez de dejar que
-    // falle (ver GET /api/fish-audio/status en backend/server.ts).
+    // Si es `false`, falta FISH_API_KEY: se deshabilita "Generar audio" en vez de fallar.
     fishAvailable: boolean
     referenceId: string
     isFavorite: (type: Favorite['type'], id: string) => boolean
     onToggleFavorite: (type: Favorite['type'], id: string, label: string) => void
     onGenerated: () => void
-    // Además del error que se muestra aquí mismo (ttsError), se avisa también
-    // arriba en App.svelte con un toast global — así no se pierde si el
-    // usuario cambia de pestaña mientras se genera el audio.
+    // Además de ttsError aquí, avisa con un toast global en App.svelte por si cambia de pestaña.
     onError: (message: string) => void
   } = $props()
 
-  // Todo el formulario (texto, modelo y parámetros avanzados) se recuerda
-  // entre visitas (localStorage), igual que la voz clonada (referenceId, que
-  // vive en App.svelte), para no perderlo si se recarga la página o se
-  // cambia de pestaña.
+  // El formulario (texto, modelo, params avanzados) se recuerda entre visitas (localStorage),
+  // igual que referenceId (que vive en App.svelte).
   let text = $state(loadPersisted('text', ''))
   $effect(() => savePersisted('text', text))
 
-  // El botón "Mejorar con IA" solo se muestra si el backend tiene configurada
-  // una API key de DeepSeek (nunca se comprueba la key en sí, solo si existe:
-  // ver GET /api/enhance-text/status en backend/server.ts).
+  // "Mejorar con IA" solo se muestra si el backend tiene DeepSeek configurado (solo se comprueba que exista la key).
   let enhanceAvailable = $state(false)
   fetch('/api/enhance-text/status')
     .then((res) => (res.ok ? res.json() : { available: false }))
@@ -71,10 +61,8 @@
   let model = $state(loadPersisted('model', 's2.1-pro-free'))
   $effect(() => savePersisted('model', model))
 
-  // Parámetros avanzados de generación (ver docs/emociones-y-tono-fish-audio.md
-  // §5). Los valores por defecto coinciden con los que usa la propia API de
-  // Fish Audio, así que no cambian nada mientras no se toquen. Se guardan
-  // aparte para que el botón de reset de cada control vuelva justo a esto.
+  // Parámetros avanzados (ver docs/emociones-y-tono-fish-audio.md §5), con los valores
+  // por defecto de la propia API de Fish Audio; se guardan aparte para el botón de reset.
   const DEFAULTS = {
     speed: 1,
     volume: 0,
@@ -128,10 +116,8 @@
   let ttsLoading = $state(false)
   let ttsError = $state('')
   let audioUrl = $state('')
-  // Id que el backend asigna a esta generación en su historial (lo manda en
-  // una cabecera porque la respuesta de /api/tts es el audio en crudo, no
-  // JSON) — se usa para que el nombre de descarga coincida con el que se ve
-  // luego en la pestaña de Historial, en vez de un nombre genérico.
+  // Id que asigna el backend a esta generación, mandado en una cabecera (la respuesta de
+  // /api/tts es audio, no JSON); se usa para nombrar la descarga igual que en Historial.
   let audioId = $state('')
 
   async function generateSpeech(e: Event) {
@@ -383,9 +369,7 @@
 <svelte:window onkeydown={closeVoiceModalOnEscape} />
 
 {#if showVoiceModal}
-  <!-- El fondo del modal cierra al hacer click fuera; Escape lo cierra igual
-     (svelte:window de arriba), así que el propio backdrop no necesita ser
-     un elemento interactivo por teclado. -->
+  <!-- El backdrop cierra al hacer click; Escape (svelte:window arriba) cubre el teclado. -->
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
@@ -418,10 +402,8 @@
 {/if}
 
 <style>
-  /* Sliders más finos que el tamaño por defecto de Bootstrap. En WebKit el
-     thumb no se autocentra sobre el track como en Firefox: hay que subirlo
-     con margin-top = (alto del track - alto del thumb) / 2 (negativo, porque
-     el thumb es más alto que el track) o queda pegado al borde superior. */
+  /* Sliders más finos que el default de Bootstrap. WebKit no autocentra el thumb
+     sobre el track: margin-top negativo = (alto track - alto thumb) / 2. */
   .slider-compact {
     height: 0.75rem;
   }

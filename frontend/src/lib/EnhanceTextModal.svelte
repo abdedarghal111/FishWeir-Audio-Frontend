@@ -1,9 +1,6 @@
 <script lang="ts">
-  // Modal de "Mejorar con IA": pide (opcionalmente) contexto de la escena,
-  // llama a DeepSeek para insertar marcadores de emoción/tono en el texto y
-  // muestra un diff palabra a palabra antes de dejar aceptarlo o descartarlo.
-  // No se llama a la API hasta pulsar "Generar" dentro del propio modal — el
-  // simple hecho de abrirlo no consume nada.
+  // Modal "Mejorar con IA": llama a DeepSeek para insertar marcadores de emoción/tono
+  // y muestra un diff antes de aceptar. No llama a la API hasta pulsar "Generar".
   import { errorMessage } from './types'
   import { diffWords } from './diff'
 
@@ -14,9 +11,7 @@
     onClose,
   }: {
     text: string
-    // Determina la sintaxis de los marcadores que debe generar el backend:
-    // corchetes libres en s2-pro/s2.1-pro, paréntesis con vocabulario cerrado
-    // en el legacy s1 (ver docs/emociones-y-tono-fish-audio.md §1).
+    // Determina la sintaxis de marcadores: corchetes en s2-pro/s2.1-pro, paréntesis en s1.
     model: string
     onAccept: (newText: string) => void
     onClose: () => void
@@ -60,9 +55,7 @@
 
 <svelte:window onkeydown={closeOnEscape} />
 
-<!-- El fondo del modal cierra al hacer click fuera; Escape lo cierra igual
-   (svelte:window de arriba), así que el propio backdrop no necesita ser un
-   elemento interactivo por teclado. -->
+<!-- El backdrop cierra al hacer click; Escape (svelte:window arriba) cubre el teclado. -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div

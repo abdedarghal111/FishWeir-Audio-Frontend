@@ -1,7 +1,5 @@
 <script lang="ts">
-  // Tarjeta de una voz clonada, usada tanto en la biblioteca (para gestionar
-  // voces propias/compartidas) como en el selector de voz del panel de texto
-  // (para elegir cuál usar al generar audio).
+  // Tarjeta de una voz, usada tanto en la biblioteca como en el selector del panel de texto.
   import { STATE_BADGES, STATE_LABELS, VISIBILITY_LABELS, formatDate, type Voice } from './types'
 
   let {
@@ -128,9 +126,7 @@
 </div>
 
 <style>
-  /* Los metadatos (descripción, contadores, fechas, autor) son secundarios
-     frente al título y las acciones, así que van más pequeños y con menos
-     separación para no ocupar tanto espacio en la tarjeta. */
+  /* Metadatos secundarios frente al título/acciones: más pequeños, menos espacio. */
   .meta {
     font-size: 0.75rem;
   }

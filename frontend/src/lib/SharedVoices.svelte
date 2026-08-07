@@ -1,7 +1,5 @@
 <script lang="ts">
-  // Pestaña "Voces compartidas": voces de otros autores guardadas por enlace
-  // o ID, con su propio buscador y botón de "Seleccionar" para fijarla como
-  // voz clonada a usar en la pestaña "Generar".
+  // Pestaña "Voces compartidas": voces de otros autores guardadas por enlace o ID.
   import type { Favorite, Voice } from './types'
   import VoiceCard from './VoiceCard.svelte'
 
@@ -17,10 +15,8 @@
   }: {
     sharedVoices: Voice[]
     favorites: Favorite[]
-    // Si es `false`, falta la API key de Fish Audio en el backend: no se
-    // pueden añadir voces compartidas nuevas (ver GET /api/fish-audio/status
-    // en backend/server.ts). Las ya guardadas se listan y se pueden quitar
-    // igual, porque eso no depende de Fish Audio.
+    // Si es `false`, falta FISH_API_KEY: no se pueden añadir voces nuevas, pero las
+    // ya guardadas se siguen listando y quitando igual.
     fishAvailable: boolean
     referenceId: string
     isFavorite: (type: Favorite['type'], id: string) => boolean

@@ -1,18 +1,7 @@
 <script lang="ts">
-  // Componente raíz: solo la capa de datos (llamadas al backend con fetch) y
-  // las pestañas. La UI en sí vive en frontend/src/lib/*.svelte:
-  // - TextPanel: pestaña "Generar" — el texto/modelo (izquierda) y, dentro
-  //   del mismo formulario, la lista compacta (foto + nombre, con filtro)
-  //   para elegir rápido la voz clonada (derecha, vía VoiceQuickPicker).
-  // - MyVoices: pestaña "Mis voces" — clonar una voz nueva y la lista de
-  //   las que ya tienes, con todos sus datos y acciones.
-  // - SharedVoices: pestaña "Voces compartidas" — añadir por enlace/ID,
-  //   filtrar y la lista de las guardadas.
-  // - GenerationHistory: pestaña "Historial" — todos los audios generados.
-  //
-  // referenceId (la voz clonada elegida) se puede fijar desde varias
-  // pestañas, así que vive aquí y viaja a todas. Cada vez que TextPanel
-  // genera un audio nuevo, avisa con onGenerated para refrescar el historial.
+  // Raíz: solo la capa de datos (fetch al backend) y las pestañas; la UI vive en lib/*.svelte
+  // (TextPanel=Generar, MyVoices=Mis voces, SharedVoices=Voces compartidas, GenerationHistory=Historial).
+  // referenceId (voz elegida) viaja entre pestañas; TextPanel llama onGenerated tras generar para refrescar el historial.
   import GenerationHistory from './lib/GenerationHistory.svelte'
   import MyVoices from './lib/MyVoices.svelte'
   import SharedVoices from './lib/SharedVoices.svelte'
@@ -21,12 +10,8 @@
 
   let tab: 'generar' | 'mis-voces' | 'compartidas' | 'historial' = $state('generar')
 
-  // Cada formulario ya muestra su propio error junto a sí mismo, pero esa
-  // alerta vive en el estado del componente: si el usuario cambia de pestaña
-  // antes de que termine una petición larga (p. ej. subir un audio de varios
-  // minutos para clonar una voz), el componente se desmonta y el aviso se
-  // pierde sin que nadie lo vea. Este toast vive aquí arriba, en App.svelte,
-  // así que sobrevive al cambio de pestaña y siempre es visible.
+  // Toast en App (no en cada formulario) para que sobreviva si el usuario cambia de
+  // pestaña antes de que termine una petición larga y el formulario se desmonta.
   let toasts: { id: string; message: string }[] = $state([])
 
   function notifyError(message: string) {
@@ -44,11 +29,8 @@
   let referenceId = $state(loadPersisted('referenceId', ''))
   $effect(() => savePersisted('referenceId', referenceId))
 
-  // Generar audio, clonar voces y añadir voces compartidas nuevas necesitan
-  // la API key de Fish Audio configurada en el backend (FISH_API_KEY); si
-  // falta, esos formularios se deshabilitan con un mensaje claro en vez de
-  // dejar que fallen. El resto (favoritos, historial, voces compartidas ya
-  // guardadas) no depende de ella y sigue funcionando igual.
+  // Generar audio, clonar voces y añadir compartidas nuevas necesitan FISH_API_KEY en el
+  // backend; si falta, esos formularios se deshabilitan (el resto sigue funcionando igual).
   let fishAvailable = $state(true)
 
   let voices: Voice[] = $state([])
@@ -178,9 +160,7 @@
         favorites = await res.json()
       }
     } catch (err) {
-      // Si falla, el estado de favoritos no cambia, pero al menos se avisa
-      // (antes fallaba en silencio y no había ninguna forma de saber por qué
-      // el botón de favorito no había hecho nada).
+      // Se avisa del fallo (antes fallaba en silencio).
       notifyError(err instanceof Error ? err.message : 'Error actualizando favoritos')
     }
   }
@@ -265,9 +245,7 @@
   {/if}
 </main>
 
-<!-- Toasts globales de error: fijos arriba a la derecha, visibles en
-     cualquier pestaña y aunque el componente que disparó el error ya no
-     esté montado. Se cierran solos a los 10s o con la ×. -->
+<!-- Toasts de error, fijos arriba a la derecha; se cierran solos a los 10s o con la ×. -->
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
   {#each toasts as t (t.id)}
     <div class="alert alert-danger d-flex align-items-start gap-2 shadow-sm mb-2" role="alert">

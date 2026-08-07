@@ -1,7 +1,5 @@
 <script lang="ts">
-  // Pestaña "Historial": todos los audios ya generados (guardados en el
-  // servidor con su texto/modelo/voz), a ancho completo para poder verlos
-  // más cómodamente que en la columna estrecha del panel de biblioteca.
+  // Pestaña "Historial": audios ya generados, a ancho completo (no en columna estrecha).
   import { formatBytes, formatDate, type Generation } from './types'
   import AudioPlayer from './AudioPlayer.svelte'
 

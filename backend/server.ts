@@ -1,7 +1,4 @@
-// Entrypoint: registra cada router de dominio (backend/routes/*.ts) y arranca
-// el servidor. Los clientes compartidos (Fish Audio, DeepSeek) y la
-// persistencia en disco viven en backend/lib/*.ts; aquí solo se compone,
-// igual que App.svelte hace con los componentes del frontend.
+// Entrypoint: registra cada router de dominio y arranca el servidor.
 import express from 'express'
 import favoritesRouter from './routes/favorites.ts'
 import generationsRouter from './routes/generations.ts'
@@ -25,9 +22,7 @@ app.use(sharedVoicesRouter)
 app.use(enhanceTextRouter)
 app.use(statusRouter)
 
-// Sirve el frontend estático en producción; en dev queda como aviso (ver
-// lib/frontend-static.ts). Va al final para no interceptar las rutas /api de
-// arriba con el comodín '/*splat'.
+// Va al final para no interceptar las rutas /api con el comodín '/*splat'.
 serveFrontend(app)
 
 app.listen(PORT, () => {

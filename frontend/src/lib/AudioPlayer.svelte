@@ -1,8 +1,6 @@
 <script lang="ts">
-  // Reproductor propio (en vez del <audio controls> nativo del navegador):
-  // play/pause, barra de progreso, tiempo y volumen, más dos botones de
-  // descarga aparte — normal (el WAV tal cual) y comprimido (MP3, convertido
-  // aquí mismo en el navegador con ffmpeg.wasm, ver ./ffmpeg.ts).
+  // Reproductor propio (en vez del <audio controls> nativo) con botones de descarga
+  // normal (WAV) y comprimida (MP3 via ffmpeg.wasm, ver ./ffmpeg.ts).
   import { convertToMp3 } from './ffmpeg'
 
   let {
@@ -15,8 +13,7 @@
     compressedName?: string
   } = $props()
 
-  // Bindings de Svelte sobre el <audio> real (oculto): al asignar `paused`
-  // se reproduce/pausa solo, sin tener que llamar a .play()/.pause() a mano.
+  // Bindings sobre el <audio> oculto: asignar `paused` reproduce/pausa solo.
   let paused = $state(true)
   let currentTime = $state(0)
   let duration = $state(0)

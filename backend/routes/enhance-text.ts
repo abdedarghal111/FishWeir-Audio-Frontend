@@ -1,7 +1,5 @@
-// Reutiliza como prompt las reglas de docs/emociones-y-tono-fish-audio.md
-// §1-3 (sintaxis de tags según modelo, catálogo de emociones/tonos y reglas
-// de colocación) para que DeepSeek devuelva el mismo texto pero con
-// marcadores de emoción insertados, sin cambiar ni una palabra del contenido.
+// Prompt basado en docs/emociones-y-tono-fish-audio.md §1-3: que DeepSeek
+// devuelva el mismo texto con marcadores de emoción, sin tocar el contenido.
 import { Router } from 'express'
 import OpenAI from 'openai'
 import { deepSeek } from '../lib/deepseek-client.ts'
@@ -14,10 +12,8 @@ const EMOTION_TAGGING_BASE_RULES = `Tu única tarea es devolver el texto que te 
 - No añadas, quites ni reordenes palabras del texto original (salvo las comillas dobles de la regla anterior cuando haga falta). No traduzcas. No añadas markdown, explicaciones ni nada que no sea el texto final con los marcadores insertados.
 - Devuelve solo el texto resultante, nada más.`
 
-// s1 es el único modelo "legacy": no entiende descripciones libres, solo un
-// vocabulario cerrado entre paréntesis (ver docs/emociones-y-tono-fish-audio.md
-// §1). El resto de la familia (s2-pro, s2.1-pro, s2.1-pro-free) entiende
-// lenguaje natural libre entre corchetes.
+// s1 es legacy: vocabulario cerrado entre paréntesis (§1 de los docs). El
+// resto de la familia entiende lenguaje natural libre entre corchetes.
 const S1_TAG_CATALOG =
   'happy, sad, angry, excited, calm, nervous, confident, surprised, satisfied, delighted, scared, worried, upset, ' +
   'frustrated, depressed, empathetic, embarrassed, disgusted, moved, proud, relaxed, grateful, curious, sarcastic, ' +

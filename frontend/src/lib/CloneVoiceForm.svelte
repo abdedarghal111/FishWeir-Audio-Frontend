@@ -1,8 +1,5 @@
 <script lang="ts">
-  // Subsección para clonar una voz nueva (clonación instantánea a partir de
-  // audios de referencia). Vive debajo del formulario de generar audio, ya
-  // que ambas cosas son parte del mismo flujo: generar con una voz, o
-  // primero crear una voz para poder usarla después.
+  // Clonación instantánea a partir de audios de referencia.
   let {
     onCreateVoice,
   }: {
@@ -84,8 +81,7 @@
 </section>
 
 <style>
-  /* Bootstrap no trae un componente de dropzone; el resto de la UI usa solo
-     clases de Bootstrap, así que dejamos aquí el único CSS a medida que hace falta. */
+  /* Bootstrap no trae un componente de dropzone; CSS a medida solo para esto. */
   .dropzone {
     height: auto;
     min-height: 88px;

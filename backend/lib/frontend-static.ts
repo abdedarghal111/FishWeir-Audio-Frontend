@@ -1,6 +1,5 @@
-// En producción este mismo backend sirve el build de Vite (frontend/dist).
-// En dev el frontend corre aparte en el puerto 5173 (`pnpm dev`) y le llega
-// tráfico /api vía el proxy de Vite, así que aquí solo se avisa de eso.
+// En producción sirve el build de Vite (frontend/dist). En dev el frontend
+// corre aparte (`pnpm dev`, puerto 5173) y solo se avisa de eso.
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import type { Express } from 'express'

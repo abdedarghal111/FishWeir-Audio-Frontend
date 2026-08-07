@@ -1,14 +1,10 @@
-// Diff palabra a palabra entre el texto original y el que devuelve la IA, para
-// que el modal de "Mejorar con IA" pueda mostrar qué ha cambiado antes de que
-// el usuario decida aceptarlo. Implementación propia (LCS clásico) en vez de
-// añadir una dependencia solo para esto — el texto de un guion de TTS es
-// corto, así que el coste O(n·m) no es un problema real.
+// Diff palabra a palabra para el modal "Mejorar con IA". LCS clásico implementado a mano
+// en vez de una dependencia — el texto de un guion TTS es corto, O(n·m) no es problema.
 
 export type DiffPart = { type: 'equal' | 'insert' | 'delete'; text: string }
 
-// Se separa conservando los espacios/saltos de línea como tokens propios
-// (en vez de partir solo por palabras) para poder reconstruir el texto
-// original byte a byte a partir de los tokens marcados como "equal".
+// Conserva espacios/saltos de línea como tokens propios para poder reconstruir el
+// texto original byte a byte a partir de los tokens "equal".
 function tokenize(text: string): string[] {
   return text.match(/\s+|[^\s]+/g) ?? []
 }
@@ -29,8 +25,7 @@ export function diffWords(a: string, b: string): DiffPart[] {
   }
 
   const parts: DiffPart[] = []
-  // Agrupa tokens consecutivos del mismo tipo en una sola parte, para no
-  // trocear el resultado en cientos de <span> de una palabra cada uno.
+  // Agrupa tokens consecutivos del mismo tipo para no trocear en cientos de <span>.
   function push(type: DiffPart['type'], text: string) {
     const last = parts[parts.length - 1]
     if (last && last.type === type) last.text += text
