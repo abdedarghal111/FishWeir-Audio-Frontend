@@ -11,6 +11,7 @@
     voices,
     sharedVoices,
     favorites,
+    fishAvailable,
     referenceId = $bindable(''),
     isFavorite,
     onToggleFavorite,
@@ -20,6 +21,10 @@
     voices: Voice[]
     sharedVoices: Voice[]
     favorites: Favorite[]
+    // Si es `false`, falta la API key de Fish Audio en el backend: se
+    // deshabilita "Generar audio" con un mensaje claro en vez de dejar que
+    // falle (ver GET /api/fish-audio/status en backend/server.ts).
+    fishAvailable: boolean
     referenceId: string
     isFavorite: (type: Favorite['type'], id: string) => boolean
     onToggleFavorite: (type: Favorite['type'], id: string, label: string) => void
@@ -131,7 +136,7 @@
 
   async function generateSpeech(e: Event) {
     e.preventDefault()
-    if (!text.trim()) return
+    if (!text.trim() || !fishAvailable) return
 
     ttsLoading = true
     ttsError = ''
@@ -202,6 +207,16 @@
   </section>
 {/if}
 
+{#if !fishAvailable}
+  <div class="alert alert-warning d-flex align-items-start gap-2">
+    <i class="fa-solid fa-triangle-exclamation mt-1" aria-hidden="true"></i>
+    <span>
+      No se puede generar audio: falta configurar la API key de Fish Audio en el servidor
+      (<code>FISH_API_KEY</code> en <code>backend/.env</code>). El resto de la aplicación funciona con normalidad.
+    </span>
+  </div>
+{/if}
+
 <form onsubmit={generateSpeech} class="d-flex flex-column gap-4">
   <div class="row g-3 align-items-end">
     <div class="col-md-5">
@@ -238,7 +253,7 @@
     </div>
 
     <div class="col-md-2">
-      <button type="submit" class="btn btn-primary w-100" disabled={ttsLoading}>
+      <button type="submit" class="btn btn-primary w-100" disabled={ttsLoading || !fishAvailable} title={fishAvailable ? '' : 'Falta configurar FISH_API_KEY en backend/.env'}>
         {#if ttsLoading}<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{/if}
         {ttsLoading ? 'Generando...' : 'Generar audio'}
       </button>

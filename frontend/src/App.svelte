@@ -45,6 +45,14 @@
   let referenceId = $state(loadPersisted('referenceId', ''))
   $effect(() => savePersisted('referenceId', referenceId))
 
+  // --- Disponibilidad de Fish Audio ---
+  // Generar audio, clonar voces y añadir voces compartidas nuevas necesitan
+  // la API key de Fish Audio configurada en el backend (FISH_API_KEY); si
+  // falta, esos formularios se deshabilitan con un mensaje claro en vez de
+  // dejar que fallen. El resto (favoritos, historial, voces compartidas ya
+  // guardadas) no depende de ella y sigue funcionando igual.
+  let fishAvailable = $state(true)
+
   // --- Voces propias ---
   let voices: Voice[] = $state([])
 
@@ -53,10 +61,28 @@
     if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
     voices = await res.json()
   }
-  loadVoices().catch((err) => {
-    voices = []
-    notifyError(err instanceof Error ? err.message : 'No se han podido cargar tus voces')
-  })
+
+  async function init() {
+    try {
+      const res = await fetch('/api/fish-audio/status')
+      const data = res.ok ? await res.json() : { available: false }
+      fishAvailable = Boolean(data?.available)
+    } catch {
+      fishAvailable = false
+    }
+
+    if (!fishAvailable) {
+      voices = []
+      return
+    }
+    try {
+      await loadVoices()
+    } catch (err) {
+      voices = []
+      notifyError(err instanceof Error ? err.message : 'No se han podido cargar tus voces')
+    }
+  }
+  init()
 
   async function createVoiceApi(title: string, files: File[]) {
     try {
@@ -220,6 +246,7 @@
       {voices}
       {sharedVoices}
       {favorites}
+      {fishAvailable}
       bind:referenceId
       {isFavorite}
       onToggleFavorite={toggleFavorite}
@@ -227,11 +254,12 @@
       onError={notifyError}
     />
   {:else if tab === 'mis-voces'}
-    <MyVoices {voices} {favorites} bind:referenceId {isFavorite} onToggleFavorite={toggleFavorite} onCreateVoice={createVoiceApi} onDeleteVoice={deleteVoiceApi} />
+    <MyVoices {voices} {favorites} {fishAvailable} bind:referenceId {isFavorite} onToggleFavorite={toggleFavorite} onCreateVoice={createVoiceApi} onDeleteVoice={deleteVoiceApi} />
   {:else if tab === 'compartidas'}
     <SharedVoices
       {sharedVoices}
       {favorites}
+      {fishAvailable}
       bind:referenceId
       {isFavorite}
       onToggleFavorite={toggleFavorite}
