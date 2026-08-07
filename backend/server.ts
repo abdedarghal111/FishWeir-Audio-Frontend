@@ -1,4 +1,3 @@
-// Entrypoint: registra cada router de dominio y arranca el servidor.
 import express from 'express'
 import favoritesRouter from './routes/favorites.ts'
 import generationsRouter from './routes/generations.ts'
@@ -22,7 +21,7 @@ app.use(sharedVoicesRouter)
 app.use(enhanceTextRouter)
 app.use(statusRouter)
 
-// Va al final para no interceptar las rutas /api con el comodín '/*splat'.
+// Se registra al final para no interceptar las rutas /api con el comodín '/*splat'.
 serveFrontend(app)
 
 app.listen(PORT, () => {

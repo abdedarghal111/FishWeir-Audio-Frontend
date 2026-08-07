@@ -1,6 +1,5 @@
-// Cualquier voz pública/no listada de Fish Audio sirve como reference_id, no
-// solo las propias. Se guarda el snapshot completo (no solo el ID) para poder
-// listarlas sin depender de volver a llamar a Fish Audio en cada carga.
+// Cualquier voz pública o no listada de Fish Audio es válida como reference_id, no solo las
+// propias; se persiste el snapshot completo para listarlas sin volver a llamar a Fish Audio.
 import path from 'node:path'
 import { Router } from 'express'
 import { createJsonStore } from '../lib/json-store.ts'
@@ -9,8 +8,7 @@ import { requireFishAudio, sendFishAudioError, toVoiceModel, type VoiceModel } f
 const sharedVoicesPath = path.resolve(import.meta.dirname, '../data/shared-voices.json')
 const sharedVoicesStore = createJsonStore<VoiceModel>(sharedVoicesPath)
 
-// Acepta el ID a secas o un enlace de fish.audio (página pública /m/<id> o
-// el estudio de TTS, con el ID en ?modelId=<id>).
+// Acepta el ID directamente, la página pública (/m/<id>) o el estudio de TTS (?modelId=<id>).
 function extractVoiceId(input: string): string {
   const trimmed = input.trim()
 
@@ -22,7 +20,7 @@ function extractVoiceId(input: string): string {
     const fromPath = url.pathname.match(/\/m\/([^/?#]+)/)
     if (fromPath) return fromPath[1]
   } catch {
-    // No es una URL (probablemente ya es el ID a secas); se sigue abajo.
+    // No es una URL: se asume que ya es el ID.
   }
 
   // Último recurso: buscar un ID hexadecimal de 32 caracteres en el texto.

@@ -33,7 +33,7 @@ router.post('/api/tts', async (req, res) => {
     return
   }
 
-  // WAV sin comprimir: Fish Audio cobra por texto de entrada, no por salida.
+  // Sin comprimir: Fish Audio factura por texto de entrada, no por la salida.
   const format = 'wav' as const
 
   const prosody: { speed?: number; volume?: number } = {}

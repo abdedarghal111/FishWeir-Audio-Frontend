@@ -1,14 +1,11 @@
-// Cliente de Fish Audio: instanciarlo, mapear sus entidades y traducir sus errores a HTTP.
 import { FishAudioClient, FishAudioError, FishAudioTimeoutError } from 'fish-audio'
 import type { ModelEntity } from 'fish-audio'
 import type { Response } from 'express'
 
-// El tipo `Backends` del SDK está desactualizado; no lista los modelos reales
-// de Fish Audio, pero el SDK solo reenvía el string tal cual, así que funcionan igual.
+// El tipo `Backends` del SDK está desactualizado y no lista estos modelos,
+// pero el SDK reenvía el string tal cual, así que funcionan igual.
 export type FishModel = 's1' | 's2-pro' | 's2.1-pro' | 's2.1-pro-free'
 
-// Opcional: si falta, el resto del backend sigue funcionando y solo se
-// deshabilitan los endpoints que dependen de Fish Audio (ver requireFishAudio).
 const apiKey = process.env.FISH_API_KEY
 if (!apiKey) {
   console.warn(
@@ -19,16 +16,14 @@ if (!apiKey) {
 }
 export const fishAudio = apiKey ? new FishAudioClient({ apiKey }) : null
 
-// `cover_image` y `author.avatar` llegan como rutas relativas al bucket de
-// Fish Audio, no URLs completas — hay que anteponerles el dominio del CDN.
+// `cover_image` y `author.avatar` llegan como rutas relativas al bucket, no URLs completas.
 const FISH_CDN_BASE = 'https://public-platform.r2.fish.audio/'
 
 function toAbsoluteImageUrl(pathOrUrl: string): string {
   return /^https?:\/\//.test(pathOrUrl) ? pathOrUrl : FISH_CDN_BASE + pathOrUrl.replace(/^\/+/, '')
 }
 
-// El SDK identifica los modelos como `_id`. Se reenvía toda la info que
-// muestra la web de Fish Audio para una voz, no solo lo mínimo.
+// El SDK identifica los modelos como `_id`.
 export function toVoiceModel(entity: ModelEntity) {
   return {
     id: entity._id,
@@ -65,8 +60,6 @@ const FISH_ERROR_MESSAGES: Record<number, string> = {
   429: 'Demasiadas peticiones a Fish Audio, espera unos segundos y reintenta.',
 }
 
-// Traduce cualquier error al llamar a Fish Audio en una respuesta HTTP con el
-// status/mensaje real (en vez de esconderlo todo detrás de un 502 genérico).
 export function sendFishAudioError(res: Response, error: unknown, fallbackMessage: string) {
   if (error instanceof FishAudioTimeoutError) {
     res.status(504).json({ message: 'Fish Audio no respondió a tiempo, inténtalo de nuevo.' })
@@ -77,8 +70,7 @@ export function sendFishAudioError(res: Response, error: unknown, fallbackMessag
     const status = error.statusCode ?? 502
     let message = FISH_ERROR_MESSAGES[status] ?? (status >= 500 ? 'Error del servidor de Fish Audio.' : fallbackMessage)
 
-    // Los errores 422 traen { detail: [{ loc, msg }, ...] }: se añade el
-    // primero al mensaje para no tener que mirar los logs.
+    // Los errores 422 traen { detail: [{ loc, msg }, ...] }; se añade el primero al mensaje.
     const detail = (error.body as { detail?: { loc?: unknown[]; msg?: string }[] } | undefined)?.detail
     if (status === 422 && detail?.[0]) {
       message += ` (${detail[0].loc?.join('.')}: ${detail[0].msg})`
@@ -97,8 +89,7 @@ const FISH_AUDIO_UNAVAILABLE_MESSAGE =
   'Fish Audio no está configurado en el backend (falta FISH_API_KEY en backend/.env). ' +
   'No se puede generar audio ni gestionar voces hasta añadir una API key válida.'
 
-// Cada endpoint llama a esto en vez de usar `fishAudio` directamente: sin API
-// key responde 503 y devuelve `null` para que el endpoint corte ahí mismo.
+// Los endpoints usan esto en vez de `fishAudio` directamente para responder 503 sin API key.
 export function requireFishAudio(res: Response): FishAudioClient | null {
   if (!fishAudio) {
     res.status(503).json({ message: FISH_AUDIO_UNAVAILABLE_MESSAGE })

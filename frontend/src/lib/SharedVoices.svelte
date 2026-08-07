@@ -49,7 +49,7 @@
     try {
       await onRemoveSharedVoice(id)
     } catch {
-      // no crítico
+      // Error no crítico: se ignora para no bloquear la interfaz.
     }
   }
 

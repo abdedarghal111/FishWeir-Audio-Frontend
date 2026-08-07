@@ -1,6 +1,6 @@
-// Convierte a MP3 en el navegador con ffmpeg.wasm, sin binario ni dependencia nativa en
+// Conversión a MP3 en el navegador con ffmpeg.wasm, sin binario ni dependencia nativa en
 // el backend. La instancia de FFmpeg es de módulo (no por componente): el core wasm
-// (~25-30MB) se carga una sola vez por sesión y se reutiliza en todas las conversiones.
+// (~25-30 MB) se carga una sola vez por sesión y se reutiliza en todas las conversiones.
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { fetchFile, toBlobURL } from '@ffmpeg/util'
 import coreURL from '@ffmpeg/core?url'

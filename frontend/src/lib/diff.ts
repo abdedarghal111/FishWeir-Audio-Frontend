@@ -3,8 +3,8 @@
 
 export type DiffPart = { type: 'equal' | 'insert' | 'delete'; text: string }
 
-// Conserva espacios/saltos de línea como tokens propios para poder reconstruir el
-// texto original byte a byte a partir de los tokens "equal".
+// Los espacios y saltos de línea se conservan como tokens independientes para poder
+// reconstruir el texto original a partir de los tokens de tipo "equal".
 function tokenize(text: string): string[] {
   return text.match(/\s+|[^\s]+/g) ?? []
 }
@@ -15,8 +15,7 @@ export function diffWords(a: string, b: string): DiffPart[] {
   const n = tokensA.length
   const m = tokensB.length
 
-  // lcs[i][j] = longitud de la subsecuencia común más larga entre
-  // tokensA[i:] y tokensB[j:].
+  // lcs[i][j] = longitud de la subsecuencia común más larga entre tokensA[i:] y tokensB[j:].
   const lcs: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0))
   for (let i = n - 1; i >= 0; i--) {
     for (let j = m - 1; j >= 0; j--) {
@@ -25,7 +24,7 @@ export function diffWords(a: string, b: string): DiffPart[] {
   }
 
   const parts: DiffPart[] = []
-  // Agrupa tokens consecutivos del mismo tipo para no trocear en cientos de <span>.
+  // Agrupa tokens consecutivos del mismo tipo para evitar generar cientos de <span> al renderizar.
   function push(type: DiffPart['type'], text: string) {
     const last = parts[parts.length - 1]
     if (last && last.type === type) last.text += text

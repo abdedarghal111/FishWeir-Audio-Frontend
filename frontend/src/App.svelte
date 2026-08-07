@@ -1,7 +1,6 @@
 <script lang="ts">
-  // Raíz: solo la capa de datos (fetch al backend) y las pestañas; la UI vive en lib/*.svelte
-  // (TextPanel=Generar, MyVoices=Mis voces, SharedVoices=Voces compartidas, GenerationHistory=Historial).
-  // referenceId (voz elegida) viaja entre pestañas; TextPanel llama onGenerated tras generar para refrescar el historial.
+  // Raíz: capa de datos y pestañas; la interfaz de cada sección vive en lib/*.svelte
+  // (TextPanel = Generar, MyVoices = Mis voces, SharedVoices = Compartidas, GenerationHistory = Historial).
   import GenerationHistory from './lib/GenerationHistory.svelte'
   import MyVoices from './lib/MyVoices.svelte'
   import SharedVoices from './lib/SharedVoices.svelte'
@@ -10,8 +9,8 @@
 
   let tab: 'generar' | 'mis-voces' | 'compartidas' | 'historial' = $state('generar')
 
-  // Toast en App (no en cada formulario) para que sobreviva si el usuario cambia de
-  // pestaña antes de que termine una petición larga y el formulario se desmonta.
+  // Los toasts se gestionan aquí, no en cada formulario, para que sigan visibles si el
+  // usuario cambia de pestaña antes de que termine una petición y el formulario se desmonte.
   let toasts: { id: string; message: string }[] = $state([])
 
   function notifyError(message: string) {
@@ -24,13 +23,11 @@
     toasts = toasts.filter((t) => t.id !== id)
   }
 
-  // La voz clonada elegida se recuerda entre visitas (localStorage), para no
-  // tener que volver a seleccionarla cada vez que se abre la página.
   let referenceId = $state(loadPersisted('referenceId', ''))
   $effect(() => savePersisted('referenceId', referenceId))
 
-  // Generar audio, clonar voces y añadir compartidas nuevas necesitan FISH_API_KEY en el
-  // backend; si falta, esos formularios se deshabilitan (el resto sigue funcionando igual).
+  // Generar audio, clonar voces y añadir voces compartidas requieren FISH_API_KEY en el
+  // backend; si falta, esos formularios se deshabilitan (el resto sigue funcionando).
   let fishAvailable = $state(true)
 
   let voices: Voice[] = $state([])
@@ -160,7 +157,6 @@
         favorites = await res.json()
       }
     } catch (err) {
-      // Se avisa del fallo (antes fallaba en silencio).
       notifyError(err instanceof Error ? err.message : 'Error actualizando favoritos')
     }
   }
@@ -245,7 +241,6 @@
   {/if}
 </main>
 
-<!-- Toasts de error, fijos arriba a la derecha; se cierran solos a los 10s o con la ×. -->
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
   {#each toasts as t (t.id)}
     <div class="alert alert-danger d-flex align-items-start gap-2 shadow-sm mb-2" role="alert">

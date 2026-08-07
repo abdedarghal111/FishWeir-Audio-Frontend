@@ -6,13 +6,12 @@ dist
 pnpm-lock.yaml
 skills-lock.json
 
-# secretos — nunca subir la API key
+# Secretos
 backend/.env
 
-# datos locales del usuario (favoritos, etc.)
+# Datos locales del usuario
 backend/data/
 
-# logs
 *.log
 npm-debug.log*
 pnpm-debug.log*

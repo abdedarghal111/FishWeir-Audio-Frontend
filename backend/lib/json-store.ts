@@ -1,9 +1,5 @@
-// Helper genérico para persistir un array como JSON en disco: mismo patrón
-// que loadPersisted/savePersisted en frontend/src/lib/types.ts, pero para el
-// backend. Cada dominio (favoritos, historial de generaciones, voces
-// compartidas) tenía su propio par read/write casi idéntico repetido en
-// server.ts; esto los reemplaza sin imponer nada más que "es un array en un
-// archivo JSON".
+// Persiste un array como JSON en disco; sustituye los pares read/write casi
+// idénticos que antes se repetían por dominio (favoritos, historial, voces compartidas) en server.ts.
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 

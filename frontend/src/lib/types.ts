@@ -20,8 +20,7 @@ export type Voice = {
 
 export type Favorite = { key: string; type: 'model' | 'voice'; id: string; label: string }
 
-// Una generación de audio ya guardada en el servidor (backend/data/generations),
-// con su metadata para poder reconocerla después sin tener que reproducirla.
+// Generación de audio persistida en el servidor (backend/data/generations).
 export type Generation = {
   id: string
   createdAt: string
@@ -32,8 +31,8 @@ export type Generation = {
   format: 'wav'
   fileName: string
   sizeBytes: number
-  // Parámetros avanzados (ver docs/emociones-y-tono-fish-audio.md §5), guardados para
-  // saber con qué ajustes se generó cada audio.
+  // Parámetros avanzados (ver docs/emociones-y-tono-fish-audio.md §5), persistidos para
+  // conocer con qué ajustes se generó cada audio.
   speed?: number
   volume?: number
   temperature?: number
@@ -92,8 +91,7 @@ export async function errorMessage(res: Response, fallback: string) {
   return (await res.json().catch(() => null))?.message ?? fallback
 }
 
-// Recuerda selecciones del formulario (modelo, voz clonada...) entre visitas,
-// para no tener que volver a elegirlas cada vez que se abre la página.
+// Persiste selecciones del formulario (modelo, voz clonada...) entre visitas.
 const STORAGE_PREFIX = 'fish-audio:'
 
 export function loadPersisted<T>(key: string, fallback: T): T {
@@ -109,6 +107,6 @@ export function savePersisted<T>(key: string, value: T) {
   try {
     localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value))
   } catch {
-    // localStorage puede no estar disponible (modo privado, cuota llena...); no es crítico.
+    // localStorage puede no estar disponible (modo privado, cuota agotada, etc.); el fallo no es crítico.
   }
 }
