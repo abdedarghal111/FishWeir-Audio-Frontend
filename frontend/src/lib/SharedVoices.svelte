@@ -8,6 +8,7 @@
   let {
     sharedVoices,
     favorites,
+    fishAvailable,
     referenceId = $bindable(''),
     isFavorite,
     onToggleFavorite,
@@ -16,6 +17,11 @@
   }: {
     sharedVoices: Voice[]
     favorites: Favorite[]
+    // Si es `false`, falta la API key de Fish Audio en el backend: no se
+    // pueden añadir voces compartidas nuevas (ver GET /api/fish-audio/status
+    // en backend/server.ts). Las ya guardadas se listan y se pueden quitar
+    // igual, porque eso no depende de Fish Audio.
+    fishAvailable: boolean
     referenceId: string
     isFavorite: (type: Favorite['type'], id: string) => boolean
     onToggleFavorite: (type: Favorite['type'], id: string, label: string) => void
@@ -30,7 +36,7 @@
 
   async function addSharedVoice(e: Event) {
     e.preventDefault()
-    if (!sharedVoiceInput.trim()) return
+    if (!sharedVoiceInput.trim() || !fishAvailable) return
 
     sharedVoiceLoading = true
     sharedVoiceError = ''
@@ -74,14 +80,30 @@
       class="form-control"
       bind:value={sharedVoiceInput}
       placeholder="https://fish.audio/m/... o ID de la voz"
+      disabled={!fishAvailable}
       required
     />
-    <button type="submit" class="btn btn-primary flex-shrink-0" disabled={sharedVoiceLoading || !sharedVoiceInput.trim()}>
+    <button
+      type="submit"
+      class="btn btn-primary flex-shrink-0"
+      disabled={sharedVoiceLoading || !sharedVoiceInput.trim() || !fishAvailable}
+      title={fishAvailable ? '' : 'Falta configurar FISH_API_KEY en backend/.env'}
+    >
       {#if sharedVoiceLoading}<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{/if}
       {sharedVoiceLoading ? 'Añadiendo...' : 'Añadir'}
     </button>
   </form>
-  {#if sharedVoiceError}<div class="alert alert-danger py-2 mt-3 mb-0">{sharedVoiceError}</div>{/if}
+  {#if !fishAvailable}
+    <div class="alert alert-warning d-flex align-items-start gap-2 mt-3 mb-0">
+      <i class="fa-solid fa-triangle-exclamation mt-1" aria-hidden="true"></i>
+      <span>
+        No se pueden añadir voces compartidas nuevas: falta configurar la API key de Fish Audio en el servidor
+        (<code>FISH_API_KEY</code> en <code>backend/.env</code>). Puedes seguir usando las que ya tengas guardadas.
+      </span>
+    </div>
+  {:else if sharedVoiceError}
+    <div class="alert alert-danger py-2 mt-3 mb-0">{sharedVoiceError}</div>
+  {/if}
 </section>
 
 <section class="mb-4">
