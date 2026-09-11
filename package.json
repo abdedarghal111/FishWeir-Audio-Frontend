@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently -n backend,frontend -c green,blue \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
-    "dev:backend": "node --watch --env-file-if-exists=backend/.env backend/server.ts",
+    "dev:backend": "node --watch --env-file-if-exists=.env backend/server.ts",
     "dev:frontend": "vite --config frontend/vite.config.ts",
     "build": "vite build --config frontend/vite.config.ts",
-    "start": "pnpm run build && node --env-file-if-exists=backend/.env backend/server.ts",
+    "start": "pnpm run build && node --env-file-if-exists=.env backend/server.ts",
     "check:backend": "tsc -p backend/tsconfig.json",
     "check:frontend": "svelte-check --tsconfig frontend/tsconfig.app.json"
   },

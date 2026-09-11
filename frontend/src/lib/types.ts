@@ -20,7 +20,7 @@ export type Voice = {
 
 export type Favorite = { key: string; type: 'model' | 'voice'; id: string; label: string }
 
-// Generación de audio persistida en el servidor (backend/data/generations).
+// Generación de audio persistida en el servidor (data/generations).
 export type Generation = {
   id: string
   createdAt: string

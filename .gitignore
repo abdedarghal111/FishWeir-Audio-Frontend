@@ -7,10 +7,10 @@ pnpm-lock.yaml
 skills-lock.json
 
 # Secretos
-backend/.env
+.env
 
 # Datos locales del usuario
-backend/data/
+/data/
 
 *.log
 npm-debug.log*

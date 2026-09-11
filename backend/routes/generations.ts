@@ -1,7 +1,8 @@
 import path from 'node:path'
 import { unlink } from 'node:fs/promises'
 import { Router } from 'express'
-import { generationsDir, generationsStore } from '../lib/generations-store.ts'
+import { generationsStore } from '../lib/generations-store.ts'
+import { GENERATIONS_DIR } from '../lib/paths.ts'
 
 const router = Router()
 
@@ -18,7 +19,7 @@ router.get('/api/generations/:id/audio', async (req, res) => {
   res.setHeader('Content-Type', 'audio/wav')
   // "inline" (no "attachment") para que el <audio> lo reproduzca en vez de descargarlo.
   res.setHeader('Content-Disposition', `inline; filename="${generation.id}.${generation.format}"`)
-  res.sendFile(path.resolve(generationsDir, generation.fileName), (err) => {
+  res.sendFile(path.resolve(GENERATIONS_DIR, generation.fileName), (err) => {
     // sendFile también invoca este callback si el cliente aborta la petición a medio
     // envío; en ese caso las cabeceras ya se enviaron, de ahí la comprobación de headersSent.
     if (err && !res.headersSent) {
@@ -31,7 +32,7 @@ router.delete('/api/generations/:id', async (req, res) => {
   const generations = await generationsStore.read()
   const generation = generations.find((g) => g.id === req.params.id)
   await generationsStore.write(generations.filter((g) => g.id !== req.params.id))
-  if (generation) await unlink(path.resolve(generationsDir, generation.fileName)).catch(() => {})
+  if (generation) await unlink(path.resolve(GENERATIONS_DIR, generation.fileName)).catch(() => {})
   res.status(204).end()
 })
 
