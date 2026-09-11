@@ -1,3 +1,11 @@
+<script module lang="ts">
+  // Persistente: no se reinicia al cambiar de pestaña.
+  let newTitle = $state('')
+  let newFiles: File[] = $state([])
+  let voicesLoading = $state(false)
+  let voicesError = $state('')
+</script>
+
 <script lang="ts">
   // Clonación instantánea a partir de audios de referencia.
   let {
@@ -6,10 +14,6 @@
     onCreateVoice: (title: string, files: File[]) => Promise<void>
   } = $props()
 
-  let newTitle = $state('')
-  let newFiles: File[] = $state([])
-  let voicesLoading = $state(false)
-  let voicesError = $state('')
   let dragging = $state(false)
 
   function onFilesChange(e: Event) {
