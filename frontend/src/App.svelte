@@ -5,7 +5,16 @@
   import MyVoices from './lib/MyVoices.svelte'
   import SharedVoices from './lib/SharedVoices.svelte'
   import TextPanel from './lib/TextPanel.svelte'
-  import { errorMessage, loadPersisted, savePersisted, type Favorite, type Generation, type Voice } from './lib/types'
+  import {
+    errorMessage,
+    loadPersisted,
+    savePersisted,
+    type Favorite,
+    type Generation,
+    type NewVoice,
+    type Voice,
+    type VoiceEdit,
+  } from './lib/types'
 
   let tab: 'generar' | 'mis-voces' | 'compartidas' | 'historial' = $state('generar')
 
@@ -60,17 +69,57 @@
   }
   init()
 
-  async function createVoiceApi(title: string, files: File[]) {
+  // Recargar la lista después de crear, editar o borrar es un extra: si falla, la operación
+  // ya se hizo igualmente, así que se avisa pero no se trata como si hubiera fallado.
+  async function refreshVoices() {
+    try {
+      await loadVoices()
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : 'No se ha podido refrescar la lista de voces')
+    }
+  }
+
+  async function createVoiceApi(voice: NewVoice): Promise<Voice> {
     try {
       const form = new FormData()
-      form.set('title', title)
-      for (const file of files) form.append('voices', file)
+      form.set('title', voice.title)
+      for (const file of voice.files) form.append('voices', file)
+      // Una entrada por audio aunque esté vacía: el backend sólo las envía si están todas.
+      for (const text of voice.texts) form.append('texts', text)
+      for (const tag of voice.tags) form.append('tags', tag)
+      form.set('description', voice.description)
+      form.set('visibility', voice.visibility)
+      form.set('enhance_audio_quality', String(voice.enhanceAudioQuality))
+      form.set('generate_sample', String(voice.generateSample))
+      if (voice.coverImage) form.set('cover_image', voice.coverImage)
 
       const res = await fetch('/api/voices', { method: 'POST', body: form })
       if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-      await loadVoices()
+      const created: Voice = await res.json()
+      await refreshVoices()
+      // Se devuelve la voz creada para poder mostrar el análisis de calidad de los audios,
+      // que sólo viene en esta respuesta y no al listar.
+      return created
     } catch (err) {
       notifyError(err instanceof Error ? err.message : 'Error creando la voz')
+      throw err
+    }
+  }
+
+  async function updateVoiceApi(id: string, edit: VoiceEdit) {
+    try {
+      const form = new FormData()
+      form.set('title', edit.title)
+      form.set('description', edit.description)
+      form.set('visibility', edit.visibility)
+      for (const tag of edit.tags) form.append('tags', tag)
+      if (edit.coverImage) form.set('cover_image', edit.coverImage)
+
+      const res = await fetch(`/api/voices/${id}`, { method: 'PATCH', body: form })
+      if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
+      await refreshVoices()
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : 'Error actualizando la voz')
       throw err
     }
   }
@@ -79,7 +128,7 @@
     try {
       const res = await fetch(`/api/voices/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-      await loadVoices()
+      await refreshVoices()
     } catch (err) {
       notifyError(err instanceof Error ? err.message : 'Error eliminando la voz')
       throw err
@@ -224,7 +273,17 @@
       onError={notifyError}
     />
   {:else if tab === 'mis-voces'}
-    <MyVoices {voices} {favorites} {fishAvailable} bind:referenceId {isFavorite} onToggleFavorite={toggleFavorite} onCreateVoice={createVoiceApi} onDeleteVoice={deleteVoiceApi} />
+    <MyVoices
+      {voices}
+      {favorites}
+      {fishAvailable}
+      bind:referenceId
+      {isFavorite}
+      onToggleFavorite={toggleFavorite}
+      onCreateVoice={createVoiceApi}
+      onUpdateVoice={updateVoiceApi}
+      onDeleteVoice={deleteVoiceApi}
+    />
   {:else if tab === 'compartidas'}
     <SharedVoices
       {sharedVoices}
