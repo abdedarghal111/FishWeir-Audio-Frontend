@@ -5,7 +5,7 @@ import { Router } from 'express'
 import { createJsonStore } from '../lib/json-store.ts'
 import { requireFishAudio, sendFishAudioError, toVoiceModel, type VoiceModel } from '../lib/fish-audio-client.ts'
 
-const sharedVoicesPath = path.resolve(import.meta.dirname, '../data/shared-voices.json')
+const sharedVoicesPath = path.resolve(import.meta.dirname, '../../data/shared-voices.json')
 const sharedVoicesStore = createJsonStore<VoiceModel>(sharedVoicesPath)
 
 // Acepta el ID directamente, la página pública (/m/<id>) o el estudio de TTS (?modelId=<id>).

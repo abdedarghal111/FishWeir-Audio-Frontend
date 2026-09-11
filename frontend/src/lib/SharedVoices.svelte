@@ -84,7 +84,7 @@
       type="submit"
       class="btn btn-primary flex-shrink-0"
       disabled={sharedVoiceLoading || !sharedVoiceInput.trim() || !fishAvailable}
-      title={fishAvailable ? '' : 'Falta configurar FISH_API_KEY en backend/.env'}
+      title={fishAvailable ? '' : 'Falta configurar FISH_API_KEY en .env'}
     >
       {#if sharedVoiceLoading}<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{/if}
       {sharedVoiceLoading ? 'Añadiendo...' : 'Añadir'}
@@ -95,7 +95,7 @@
       <i class="fa-solid fa-triangle-exclamation mt-1" aria-hidden="true"></i>
       <span>
         No se pueden añadir voces compartidas nuevas: falta configurar la API key de Fish Audio en el servidor
-        (<code>FISH_API_KEY</code> en <code>backend/.env</code>). Puedes seguir usando las que ya tengas guardadas.
+        (<code>FISH_API_KEY</code> en <code>.env</code>). Puedes seguir usando las que ya tengas guardadas.
       </span>
     </div>
   {:else if sharedVoiceError}

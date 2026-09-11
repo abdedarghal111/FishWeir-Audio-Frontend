@@ -41,7 +41,7 @@ const router = Router()
 
 router.post('/api/enhance-text', async (req, res) => {
   if (!deepSeek) {
-    res.status(503).json({ message: 'DeepSeek no está configurado en el backend (falta DEEPSEEK_API_KEY en backend/.env).' })
+    res.status(503).json({ message: 'DeepSeek no está configurado en el backend (falta DEEPSEEK_API_KEY en .env).' })
     return
   }
 

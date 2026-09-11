@@ -44,7 +44,7 @@
     <i class="fa-solid fa-triangle-exclamation mt-1" aria-hidden="true"></i>
     <span>
       No se pueden clonar ni listar voces: falta configurar la API key de Fish Audio en el servidor
-      (<code>FISH_API_KEY</code> en <code>backend/.env</code>). El resto de la aplicación funciona con normalidad.
+      (<code>FISH_API_KEY</code> en <code>.env</code>). El resto de la aplicación funciona con normalidad.
     </span>
   </div>
 {:else}

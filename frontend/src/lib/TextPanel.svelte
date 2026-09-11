@@ -207,7 +207,7 @@
     <i class="fa-solid fa-triangle-exclamation mt-1" aria-hidden="true"></i>
     <span>
       No se puede generar audio: falta configurar la API key de Fish Audio en el servidor
-      (<code>FISH_API_KEY</code> en <code>backend/.env</code>). El resto de la aplicación funciona con normalidad.
+      (<code>FISH_API_KEY</code> en <code>.env</code>). El resto de la aplicación funciona con normalidad.
     </span>
   </div>
 {/if}
@@ -248,7 +248,7 @@
     </div>
 
     <div class="col-md-2">
-      <button type="submit" class="btn btn-primary w-100" disabled={ttsLoading || !fishAvailable} title={fishAvailable ? '' : 'Falta configurar FISH_API_KEY en backend/.env'}>
+      <button type="submit" class="btn btn-primary w-100" disabled={ttsLoading || !fishAvailable} title={fishAvailable ? '' : 'Falta configurar FISH_API_KEY en .env'}>
         {#if ttsLoading}<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{/if}
         {ttsLoading ? 'Generando...' : 'Generar audio'}
       </button>

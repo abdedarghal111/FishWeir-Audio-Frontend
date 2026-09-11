@@ -46,9 +46,9 @@ Aclarado esto por si acaso: no tiene ninguna intención maliciosa ni busca insin
    ```
 2. Configura las variables de entorno del backend:
    ```
-   cp backend/.env.example backend/.env
+   cp .env.example .env
    ```
-   Y edita `backend/.env` con tu API key de [fish.audio/app/api-keys](https://fish.audio/app/api-keys) (y el puerto si quieres cambiarlo). También puedes añadir una API key de [DeepSeek](https://platform.deepseek.com/api_keys) (opcional) para activar el botón "Mejorar con IA".
+   Y edita `.env` con tu API key de [fish.audio/app/api-keys](https://fish.audio/app/api-keys) (y el puerto si quieres cambiarlo). También puedes añadir una API key de [DeepSeek](https://platform.deepseek.com/api_keys) (opcional) para activar el botón "Mejorar con IA".
 
 ### Producción
 

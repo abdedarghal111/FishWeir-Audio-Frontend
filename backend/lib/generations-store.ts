@@ -24,7 +24,7 @@ export type Generation = {
   sampleRate?: number
 }
 
-export const generationsDir = path.resolve(import.meta.dirname, '../data/generations')
-const generationsPath = path.resolve(import.meta.dirname, '../data/generations.json')
+export const generationsDir = path.resolve(import.meta.dirname, '../../data/generations')
+const generationsPath = path.resolve(import.meta.dirname, '../../data/generations.json')
 
 export const generationsStore = createJsonStore<Generation>(generationsPath)

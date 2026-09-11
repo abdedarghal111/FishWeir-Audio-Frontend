@@ -9,7 +9,7 @@ export type FishModel = 's1' | 's2-pro' | 's2.1-pro' | 's2.1-pro-free'
 const apiKey = process.env.FISH_API_KEY
 if (!apiKey) {
   console.warn(
-    'Aviso: falta la variable de entorno FISH_API_KEY. Copia backend/.env.example a backend/.env y añade tu ' +
+    'Aviso: falta la variable de entorno FISH_API_KEY. Copia .env.example a .env y añade tu ' +
       'API key de https://fish.audio/app/api-keys para poder generar audio, clonar voces y añadir voces ' +
       'compartidas. El resto de la aplicación (favoritos, historial, voces compartidas ya guardadas) funciona igual sin ella.',
   )
@@ -51,7 +51,7 @@ export type VoiceModel = ReturnType<typeof toVoiceModel>
 // Mensajes según los códigos documentados en https://docs.fish.audio/api-reference/errors
 const FISH_ERROR_MESSAGES: Record<number, string> = {
   400: 'Petición inválida: revisa el texto, el modelo o el reference_id enviados.',
-  401: 'La API key de Fish Audio no es válida o falta. Revisa backend/.env.',
+  401: 'La API key de Fish Audio no es válida o falta. Revisa .env.',
   402: 'Sin crédito suficiente en la cuenta de Fish Audio (revisa tu saldo en fish.audio).',
   403: 'Esta API key no tiene permiso para usar ese recurso.',
   404: 'Modelo o voz no encontrado (puede que ya no exista o no sea tuyo).',
@@ -86,7 +86,7 @@ export function sendFishAudioError(res: Response, error: unknown, fallbackMessag
 }
 
 const FISH_AUDIO_UNAVAILABLE_MESSAGE =
-  'Fish Audio no está configurado en el backend (falta FISH_API_KEY en backend/.env). ' +
+  'Fish Audio no está configurado en el backend (falta FISH_API_KEY en .env). ' +
   'No se puede generar audio ni gestionar voces hasta añadir una API key válida.'
 
 // Los endpoints usan esto en vez de `fishAudio` directamente para responder 503 sin API key.

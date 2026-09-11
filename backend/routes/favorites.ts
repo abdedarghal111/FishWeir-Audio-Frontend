@@ -3,7 +3,7 @@ import { Router } from 'express'
 import { createJsonStore } from '../lib/json-store.ts'
 
 type Favorite = { key: string; type: 'model' | 'voice'; id: string; label: string }
-const favoritesPath = path.resolve(import.meta.dirname, '../data/favorites.json')
+const favoritesPath = path.resolve(import.meta.dirname, '../../data/favorites.json')
 const favoritesStore = createJsonStore<Favorite>(favoritesPath)
 
 const router = Router()
