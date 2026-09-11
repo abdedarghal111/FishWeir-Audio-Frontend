@@ -7,17 +7,38 @@
     src,
     downloadName = 'audio.wav',
     compressedName = 'audio.mp3',
+    currentTime = $bindable(0),
+    duration = $bindable(0),
+    volume = $bindable(1),
   }: {
     src: string
     downloadName?: string
     compressedName?: string
+    // Opcionales: pasados con bind:, sobreviven al desmontaje del reproductor.
+    currentTime?: number
+    duration?: number
+    volume?: number
   } = $props()
 
   // Bindings sobre el <audio> oculto: asignar `paused` reproduce/pausa solo.
   let paused = $state(true)
-  let currentTime = $state(0)
-  let duration = $state(0)
-  let volume = $state(1)
+
+  // El <audio> nuevo arranca en 0 y no sabe la duración hasta cargar los metadatos.
+  const startTime = currentTime
+  const startDuration = duration
+
+  function restorePosition(e: Event) {
+    if (startTime > 0) (e.currentTarget as HTMLAudioElement).currentTime = startTime
+  }
+
+  let totalTime = $derived(duration > 0 ? duration : startDuration)
+  // Fracción, con el max del slider fijo a 1: con un max que arranca en 0 el navegador recorta
+  // el value y el pulgar se queda a la izquierda.
+  let progress = $derived(totalTime > 0 ? currentTime / totalTime : 0)
+
+  function seek(e: Event) {
+    currentTime = (e.currentTarget as HTMLInputElement).valueAsNumber * totalTime
+  }
 
   function formatTime(t: number) {
     if (!isFinite(t) || t < 0) return '0:00'
@@ -63,8 +84,8 @@
   </button>
 
   <span class="small text-body-secondary time">{formatTime(currentTime)}</span>
-  <input type="range" class="form-range flex-grow-1" min="0" max={duration || 0} step="0.01" bind:value={currentTime} aria-label="Progreso" />
-  <span class="small text-body-secondary time">{formatTime(duration)}</span>
+  <input type="range" class="form-range flex-grow-1" min="0" max="1" step="0.001" value={progress} oninput={seek} aria-label="Progreso" />
+  <span class="small text-body-secondary time">{formatTime(totalTime)}</span>
 
   <i class="fa-solid fa-volume-high text-body-secondary" aria-hidden="true"></i>
   <input type="range" class="form-range volume" min="0" max="1" step="0.05" bind:value={volume} title="Volumen" aria-label="Volumen" />
@@ -91,7 +112,7 @@
 
 {#if mp3Error}<div class="alert alert-danger py-1 px-2 small mt-1 mb-0">{mp3Error}</div>{/if}
 
-<audio bind:paused bind:currentTime bind:duration bind:volume {src} preload="metadata" hidden></audio>
+<audio bind:paused bind:currentTime bind:duration bind:volume {src} preload="metadata" onloadedmetadata={restorePosition} hidden></audio>
 
 <style>
   .play-btn {

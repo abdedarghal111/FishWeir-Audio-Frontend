@@ -1,3 +1,8 @@
+<script module lang="ts">
+  // Persistente: no se reinicia al cambiar de pestaña.
+  let generationsError = $state('')
+</script>
+
 <script lang="ts">
   // Pestaña "Historial": audios ya generados, a ancho completo (no en columna estrecha).
   import { formatBytes, formatDate, type Generation } from './types'
@@ -10,8 +15,6 @@
     generations: Generation[]
     onDeleteGeneration: (id: string) => Promise<void>
   } = $props()
-
-  let generationsError = $state('')
 
   async function deleteGeneration(id: string) {
     try {

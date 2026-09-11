@@ -1,3 +1,8 @@
+<script module lang="ts">
+  // Persistente: no se reinicia al cambiar de pestaña.
+  let voicesError = $state('')
+</script>
+
 <script lang="ts">
   // Pestaña "Mis voces": clonar una voz (arriba) + lista de las ya clonadas.
   import type { Favorite, Voice } from './types'
@@ -24,8 +29,6 @@
     onCreateVoice: (title: string, files: File[]) => Promise<void>
     onDeleteVoice: (id: string) => Promise<void>
   } = $props()
-
-  let voicesError = $state('')
 
   async function deleteVoice(id: string) {
     try {
