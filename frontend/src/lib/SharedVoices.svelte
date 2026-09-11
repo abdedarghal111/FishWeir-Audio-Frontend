@@ -1,3 +1,11 @@
+<script module lang="ts">
+  // Persistente: no se reinicia al cambiar de pestaña.
+  let sharedVoiceInput = $state('')
+  let sharedVoiceLoading = $state(false)
+  let sharedVoiceError = $state('')
+  let sharedVoiceSearch = $state('')
+</script>
+
 <script lang="ts">
   // Pestaña "Voces compartidas": voces de otros autores guardadas por enlace o ID.
   import type { Favorite, Voice } from './types'
@@ -25,10 +33,6 @@
     onRemoveSharedVoice: (id: string) => Promise<void>
   } = $props()
 
-  let sharedVoiceInput = $state('')
-  let sharedVoiceLoading = $state(false)
-  let sharedVoiceError = $state('')
-
   async function addSharedVoice(e: Event) {
     e.preventDefault()
     if (!sharedVoiceInput.trim() || !fishAvailable) return
@@ -53,7 +57,6 @@
     }
   }
 
-  let sharedVoiceSearch = $state('')
   let filteredSharedVoices = $derived(
     sharedVoices.filter((v) => v.title.toLowerCase().includes(sharedVoiceSearch.trim().toLowerCase())),
   )
