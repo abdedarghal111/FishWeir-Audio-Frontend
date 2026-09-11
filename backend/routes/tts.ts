@@ -6,7 +6,8 @@ import { Readable } from 'node:stream'
 import { Router } from 'express'
 import type { Backends } from 'fish-audio'
 import { requireFishAudio, sendFishAudioError, type FishModel } from '../lib/fish-audio-client.ts'
-import { generationsDir, generationsStore } from '../lib/generations-store.ts'
+import { generationsStore } from '../lib/generations-store.ts'
+import { GENERATIONS_DIR } from '../lib/paths.ts'
 
 const router = Router()
 
@@ -59,7 +60,7 @@ router.post('/api/tts', async (req, res) => {
 
     const id = randomUUID()
     const fileName = `${id}.${format}`
-    await mkdir(generationsDir, { recursive: true })
+    await mkdir(GENERATIONS_DIR, { recursive: true })
 
     res.setHeader('Content-Type', 'audio/wav')
     // La respuesta es audio en crudo, no JSON: el id viaja en una cabecera
@@ -67,13 +68,13 @@ router.post('/api/tts', async (req, res) => {
     res.setHeader('X-Generation-Id', id)
     res.setHeader('Access-Control-Expose-Headers', 'X-Generation-Id')
     const nodeStream = Readable.from(audio)
-    const fileStream = createWriteStream(path.resolve(generationsDir, fileName))
+    const fileStream = createWriteStream(path.resolve(GENERATIONS_DIR, fileName))
     nodeStream.pipe(res)
     nodeStream.pipe(fileStream)
 
     fileStream.on('finish', async () => {
       try {
-        const { size } = await stat(path.resolve(generationsDir, fileName))
+        const { size } = await stat(path.resolve(GENERATIONS_DIR, fileName))
         const generations = await generationsStore.read()
         generations.unshift({
           id,

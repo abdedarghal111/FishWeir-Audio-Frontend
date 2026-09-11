@@ -1,7 +1,7 @@
 // Cada audio generado se guarda en disco (.wav) más su metadata en un JSON.
 // Módulo propio porque lo usan dos routers: tts.ts escribe, generations.ts lee/borra.
-import path from 'node:path'
 import { createJsonStore } from './json-store.ts'
+import { GENERATIONS_PATH } from './paths.ts'
 
 export type Generation = {
   id: string
@@ -24,7 +24,4 @@ export type Generation = {
   sampleRate?: number
 }
 
-export const generationsDir = path.resolve(import.meta.dirname, '../../data/generations')
-const generationsPath = path.resolve(import.meta.dirname, '../../data/generations.json')
-
-export const generationsStore = createJsonStore<Generation>(generationsPath)
+export const generationsStore = createJsonStore<Generation>(GENERATIONS_PATH)
