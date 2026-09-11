@@ -15,8 +15,55 @@ export type Voice = {
   author?: { _id: string; nickname: string; avatar: string }
   trainMode?: 'fast' | 'full'
   languages?: string[]
-  samples?: { title: string; text: string; task_id: string; audio: string }
+  samples?: VoiceSample[]
+  // Sólo llega en la respuesta de crear la voz.
+  quality?: AudioQuality[]
 }
+
+export type VoiceSample = { title: string; text: string; task_id: string; audio: string }
+
+export type AudioQuality = {
+  filename: string
+  duration_ms: number
+  language?: string
+  quality?: Record<string, number>
+  quality_passed?: boolean
+  quality_reason?: string
+}
+
+// Lo que se puede cambiar de una voz ya creada.
+export type VoiceEdit = {
+  title: string
+  description: string
+  visibility: VoiceVisibility
+  tags: string[]
+  coverImage?: File
+}
+
+export type VoiceVisibility = 'private' | 'unlist'
+
+// Lo que recoge el formulario de clonación.
+export type NewVoice = {
+  title: string
+  files: File[]
+  texts: string[]
+  description: string
+  tags: string[]
+  visibility: VoiceVisibility
+  coverImage?: File
+  enhanceAudioQuality: boolean
+  generateSample: boolean
+}
+
+// Falta "pública" a propósito: publicar una voz sólo se puede desde fish.audio.
+export const VISIBILITY_OPTIONS: { value: VoiceVisibility; label: string; hint: string }[] = [
+  { value: 'private', label: 'Privada', hint: 'Sólo tú puedes verla y usarla.' },
+  { value: 'unlist', label: 'No listada', hint: 'Cualquiera con el enlace puede usarla, pero no aparece en el catálogo.' },
+]
+
+// Formatos y límites de la clonación instantánea (docs.fish.audio/features/voice-cloning).
+export const AUDIO_EXTENSIONS = ['.wav', '.mp3', '.m4a', '.opus']
+export const MAX_VOICE_FILES = 20
 
 export type Favorite = { key: string; type: 'model' | 'voice'; id: string; label: string }
 
@@ -109,4 +156,9 @@ export function savePersisted<T>(key: string, value: T) {
   } catch {
     // localStorage puede no estar disponible (modo privado, cuota agotada, etc.); el fallo no es crítico.
   }
+}
+
+// Las etiquetas se escriben separadas por comas; se limpian espacios, vacíos y repetidas.
+export function parseTags(input: string): string[] {
+  return [...new Set(input.split(',').map((tag) => tag.trim()).filter(Boolean))]
 }
