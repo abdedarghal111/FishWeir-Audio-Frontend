@@ -1,3 +1,27 @@
+<script module lang="ts">
+  // Persistente: no se reinicia al cambiar de pestaña.
+  let ttsLoading = $state(false)
+  let ttsError = $state('')
+  let audioUrl = $state('')
+  // Id que asigna el backend a esta generación, mandado en una cabecera (la respuesta de
+  // /api/tts es audio, no JSON); se usa para nombrar la descarga igual que en Historial.
+  let audioId = $state('')
+  let audioTime = $state(0)
+  let audioDuration = $state(0)
+  let audioVolume = $state(1)
+
+  // Snapshot del texto justo antes de aceptar un resultado de la IA, para
+  // poder deshacerlo con un click si el resultado no gusta.
+  let previousText: string | null = $state(null)
+
+  // "Mejorar con IA" solo se muestra si el backend tiene DeepSeek configurado (solo se comprueba que exista la key).
+  let enhanceAvailable = $state(false)
+  fetch('/api/enhance-text/status')
+    .then((res) => (res.ok ? res.json() : { available: false }))
+    .then((data) => (enhanceAvailable = Boolean(data?.available)))
+    .catch(() => {})
+</script>
+
 <script lang="ts">
   // Pestaña "Generar": texto/modelo + selector compacto de voz (VoiceQuickPicker) en el mismo formulario.
   import { MODELS, errorMessage, loadPersisted, savePersisted, type Favorite, type Voice } from './types'
@@ -34,17 +58,7 @@
   let text = $state(loadPersisted('text', ''))
   $effect(() => savePersisted('text', text))
 
-  // "Mejorar con IA" solo se muestra si el backend tiene DeepSeek configurado (solo se comprueba que exista la key).
-  let enhanceAvailable = $state(false)
-  fetch('/api/enhance-text/status')
-    .then((res) => (res.ok ? res.json() : { available: false }))
-    .then((data) => (enhanceAvailable = Boolean(data?.available)))
-    .catch(() => {})
-
   let showEnhanceModal = $state(false)
-  // Snapshot del texto justo antes de aceptar un resultado de la IA, para
-  // poder deshacerlo con un click si el resultado no gusta.
-  let previousText: string | null = $state(null)
 
   function acceptEnhancedText(newText: string) {
     previousText = text
@@ -113,13 +127,6 @@
     else referenceId = fav.id
   }
 
-  let ttsLoading = $state(false)
-  let ttsError = $state('')
-  let audioUrl = $state('')
-  // Id que asigna el backend a esta generación, mandado en una cabecera (la respuesta de
-  // /api/tts es audio, no JSON); se usa para nombrar la descarga igual que en Historial.
-  let audioId = $state('')
-
   async function generateSpeech(e: Event) {
     e.preventDefault()
     if (!text.trim() || !fishAvailable) return
@@ -150,6 +157,8 @@
       if (audioUrl) URL.revokeObjectURL(audioUrl)
       audioId = res.headers.get('X-Generation-Id') ?? ''
       audioUrl = URL.createObjectURL(await res.blob())
+      audioTime = 0
+      audioDuration = 0
       // El backend ya lo ha guardado (audio + texto/modelo/voz) en su historial.
       onGenerated()
     } catch (err) {
@@ -247,7 +256,16 @@
   </div>
 
   {#if ttsError}<div class="alert alert-danger py-2 mb-0">{ttsError}</div>{/if}
-  {#if audioUrl}<AudioPlayer src={audioUrl} downloadName="{audioId || 'fish-audio'}.wav" compressedName="{audioId || 'fish-audio'}.mp3" />{/if}
+  {#if audioUrl}
+    <AudioPlayer
+      src={audioUrl}
+      downloadName="{audioId || 'fish-audio'}.wav"
+      compressedName="{audioId || 'fish-audio'}.mp3"
+      bind:currentTime={audioTime}
+      bind:duration={audioDuration}
+      bind:volume={audioVolume}
+    />
+  {/if}
 
   <div>
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
