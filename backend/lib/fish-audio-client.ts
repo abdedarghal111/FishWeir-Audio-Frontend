@@ -23,8 +23,29 @@ function toAbsoluteImageUrl(pathOrUrl: string): string {
   return /^https?:\/\//.test(pathOrUrl) ? pathOrUrl : FISH_CDN_BASE + pathOrUrl.replace(/^\/+/, '')
 }
 
+type VoiceSample = { title: string; text: string; task_id: string; audio: string }
+
+// Sólo viene en la respuesta de crear la voz, no al listarlas ni al obtener una.
+export type AudioQuality = {
+  filename: string
+  duration_ms: number
+  language?: string
+  quality?: Record<string, number>
+  quality_passed?: boolean
+  quality_reason?: string
+}
+
+// `ModelEntity` tipa `samples` como objeto único y no incluye `quality`, pero la respuesta
+// trae un array y el análisis de los audios.
+type FishModelEntity = Omit<ModelEntity, 'samples'> & {
+  samples?: VoiceSample | VoiceSample[] | null
+  quality?: { audios?: AudioQuality[] } | null
+}
+
 // El SDK identifica los modelos como `_id`.
-export function toVoiceModel(entity: ModelEntity) {
+export function toVoiceModel(entity: FishModelEntity) {
+  const samples = entity.samples ? (Array.isArray(entity.samples) ? entity.samples : [entity.samples]) : []
+
   return {
     id: entity._id,
     title: entity.title,
@@ -42,11 +63,50 @@ export function toVoiceModel(entity: ModelEntity) {
     author: entity.author && { ...entity.author, avatar: entity.author.avatar ? toAbsoluteImageUrl(entity.author.avatar) : entity.author.avatar },
     trainMode: entity.train_mode,
     languages: entity.languages,
-    samples: entity.samples,
+    samples,
+    quality: entity.quality?.audios ?? undefined,
   }
 }
 
 export type VoiceModel = ReturnType<typeof toVoiceModel>
+
+// Crear y editar voces va por aquí y no por `fishAudio.voices`, que serializa los arrays
+// uniéndolos por comas en un solo campo y rompe `tags` y `texts`.
+const FISH_API_BASE = 'https://api.fish.audio'
+
+// Sin límite, una petición colgada dejaría el formulario girando para siempre.
+const FISH_TIMEOUT_MS = 240_000
+
+function parseBody(text: string): unknown {
+  if (!text) return undefined
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
+}
+
+// Los fallos se lanzan como `FishAudioError` / `FishAudioTimeoutError` para que
+// `sendFishAudioError` los traduzca igual que los del resto de llamadas.
+export async function fishAudioFetch(path: string, method: 'POST' | 'PATCH', body: FormData | string) {
+  const headers: Record<string, string> = { Authorization: `Bearer ${apiKey}` }
+  if (typeof body === 'string') headers['Content-Type'] = 'application/json'
+
+  let res: globalThis.Response
+  try {
+    res = await fetch(FISH_API_BASE + path, { method, headers, body, signal: AbortSignal.timeout(FISH_TIMEOUT_MS) })
+  } catch (error) {
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      throw new FishAudioTimeoutError(`Fish Audio no respondió en ${FISH_TIMEOUT_MS / 1000} s.`)
+    }
+    // Fallo de red o de DNS: sin respuesta, así que no hay código de estado que reenviar.
+    throw new FishAudioError({ message: error instanceof Error ? error.message : 'Error de red llamando a Fish Audio.' })
+  }
+
+  const parsed = parseBody(await res.text())
+  if (!res.ok) throw new FishAudioError({ statusCode: res.status, body: parsed, message: res.statusText })
+  return parsed
+}
 
 // Mensajes según los códigos documentados en https://docs.fish.audio/api-reference/errors
 const FISH_ERROR_MESSAGES: Record<number, string> = {

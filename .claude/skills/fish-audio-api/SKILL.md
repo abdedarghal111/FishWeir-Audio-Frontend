@@ -319,15 +319,24 @@ Billing: one successful generation request is charged once, even when it returns
 
 ### List: `GET /model`
 
-Query params: `page_size` (default 10), `page_number` (default 1), `title`, `tag` (string or array), `self` (bool — only your models), `author_id`, `language`, `title_language`, `sort_by` (`score` | `task_count` | `created_at`, default `score`).
+Query params: `page_size` (default 10, **max 100**), `page_number` (default 1), `title`, `tag` (string or array), `self` (bool — only your models), `author_id` (ignored when `self`), `language`, `title_language`, `licensed` (bool, default false — only voices licensed by Fish Audio; ignored when `self`), `sort_by` (`score` | `task_count` | `created_at`, default `score`).
 
-Returns `{total, items: ModelEntity[]}`.
+Returns `{total, items: ModelEntity[], has_more, total_is_exact, window_limited, max_offset, accessible_upper_bound}`.
 
-### Create: `POST /model` (multipart/form-data)
+### Create: `POST /model`
 
-Required: `type=tts`, `title`, `train_mode=fast`, `voices` (one or more audio file uploads).
+Use `multipart/form-data` — `voices` and `cover_image` are binary.
 
-Optional: `visibility` (`public` | `unlist` | `private`, default `public`; `cover_image` is required if `public`), `description`, `cover_image`, `texts` (transcripts matching each voice; if omitted, ASR is run on the audio), `tags` (string or array), `enhance_audio_quality` (bool, default `false`).
+Required: `type=tts` (const), `title`, `train_mode=fast` (const), `voices` (**1–20** audio file uploads).
+
+Optional:
+
+- `visibility` (`public` | `unlist` | `private`, **default `private`**). **`public` is downgraded to `private` on create** — publishing to the Voice Library is web-only. `cover_image` is required if the model is public.
+- `description`, `cover_image`
+- `texts` — transcripts matching each voice, **max 20**, same order; if omitted, ASR is run on the audio
+- `tags` (string or array)
+- `enhance_audio_quality` (bool, **default `true`**) — denoise and normalize before training
+- `generate_sample` (bool, default `false`) — generate a default-text sample
 
 ```bash
 curl --request POST https://api.fish.audio/model \
@@ -349,8 +358,8 @@ Returns 201 with the full `ModelEntity` including `_id`, `state` (`created` | `t
 ### Get / Update / Delete
 
 - `GET /model/{id}` → `ModelEntity`
-- `PATCH /model/{id}` — JSON, form-urlencoded, multipart, or msgpack. Nullable fields: `title`, `description`, `cover_image` (binary), `visibility`, `tags`.
-- `DELETE /model/{id}` → 200 on success.
+- `PATCH /model/{id}` — JSON, or multipart when sending `cover_image`. Editable fields, and only these: `title`, `description`, `cover_image` (binary), `visibility`, `tags`. The 200 declares no schema, so re-read with `GET /model/{id}`.
+- `DELETE /model/{id}` → 200 with an empty body.
 
 ```bash
 curl --request PATCH https://api.fish.audio/model/<id> \

@@ -8,6 +8,7 @@
     onToggleFavorite,
     onRemove = undefined,
     removeLabel = 'Eliminar',
+    onEdit = undefined,
     onSelect = undefined,
     selected = false,
     compact = false,
@@ -17,6 +18,8 @@
     onToggleFavorite: () => void
     onRemove?: (() => void) | undefined
     removeLabel?: string
+    // Sólo se pasa para las voces propias: las compartidas son de otra cuenta.
+    onEdit?: (() => void) | undefined
     onSelect?: (() => void) | undefined
     selected?: boolean
     compact?: boolean
@@ -45,6 +48,11 @@
           >
             <i class="fa-{favorite ? 'solid' : 'regular'} fa-star" aria-hidden="true"></i>
           </button>
+          {#if onEdit}
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Editar voz" onclick={onEdit}>
+              <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            </button>
+          {/if}
           {#if onSelect}
             <button type="button" class="btn btn-sm" class:btn-primary={selected} class:btn-outline-primary={!selected} onclick={onSelect}>
               {selected ? 'Seleccionada' : 'Seleccionar'}
@@ -87,7 +95,9 @@
           <span><i class="fa-solid fa-heart" aria-hidden="true"></i> {voice.likeCount ?? 0} me gusta</span>
           <span><i class="fa-solid fa-bookmark" aria-hidden="true"></i> {voice.markCount ?? 0} guardados</span>
           <span><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> {voice.sharedCount ?? 0} compartidos</span>
-          <span><i class="fa-solid fa-play" aria-hidden="true"></i> {voice.taskCount ?? 0} generaciones</span>
+          <span title="Contador de Fish Audio; no está documentado si suma las generaciones hechas desde la API.">
+            <i class="fa-solid fa-play" aria-hidden="true"></i> {voice.taskCount ?? 0} generaciones
+          </span>
         </div>
 
         <div class="d-flex flex-wrap gap-2 meta text-body-secondary mb-1">
@@ -107,9 +117,9 @@
         </div>
       {/if}
 
-      {#if voice.samples?.audio}
-        <audio controls src={voice.samples.audio} class="w-100"></audio>
-      {/if}
+      {#each voice.samples ?? [] as sample (sample.task_id)}
+        <audio controls src={sample.audio} class="w-100"></audio>
+      {/each}
 
       {#if !compact}
         <a
