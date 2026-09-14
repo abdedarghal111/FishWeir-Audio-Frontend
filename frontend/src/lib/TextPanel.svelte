@@ -9,6 +9,7 @@
     let audioTime = $state(0)
     let audioDuration = $state(0)
     let audioVolume = $state(1)
+    let audioPaused = $state(true)
 
     // Snapshot del texto justo antes de aceptar un resultado de la IA, para
     // poder deshacerlo con un click si el resultado no gusta.
@@ -27,6 +28,8 @@
     import { MODELS, errorMessage, loadPersisted, savePersisted, type Favorite, type Voice } from './types'
     import AudioPlayer from './AudioPlayer.svelte'
     import EnhanceTextModal from './EnhanceTextModal.svelte'
+    import GeneratingIndicator from './GeneratingIndicator.svelte'
+    import { playNotifySound } from './notifySound'
     import VoiceQuickPicker from './VoiceQuickPicker.svelte'
 
     let {
@@ -74,6 +77,14 @@
 
     let model = $state(loadPersisted('model', 's2.1-pro-free'))
     $effect(() => savePersisted('model', model))
+
+    let autoplay = $state(loadPersisted('autoplay', true))
+    $effect(() => savePersisted('autoplay', autoplay))
+
+    let notifySound = $state(loadPersisted('notifySound', true))
+    $effect(() => savePersisted('notifySound', notifySound))
+
+    const AUTOPLAY_DELAY_MS = 250
 
     // Parámetros avanzados (ver docs/emociones-y-tono-fish-audio.md §5), con los valores
     // por defecto de la propia API de Fish Audio; se guardan aparte para el botón de reset.
@@ -159,6 +170,19 @@
             audioUrl = URL.createObjectURL(await res.blob())
             audioTime = 0
             audioDuration = 0
+            // Los switches se consultan aquí, ya confirmada la generación, y no antes.
+            audioPaused = true
+            if (notifySound) {
+                playNotifySound()
+            }
+            if (autoplay) {
+                // Solapados, la campanada y el principio del texto se pisan.
+                if (notifySound) {
+                    setTimeout(() => (audioPaused = false), AUTOPLAY_DELAY_MS)
+                } else {
+                    audioPaused = false
+                }
+            }
             // El backend ya lo ha guardado (audio + texto/modelo/voz) en su historial.
             onGenerated()
         } catch (err) {
@@ -214,7 +238,7 @@
 
 <form onsubmit={generateSpeech} class="d-flex flex-column gap-4">
     <div class="row g-3 align-items-end">
-        <div class="col-md-5">
+        <div class="col-md-6">
             <label class="form-label" for="model">Modelo</label>
             <div class="d-flex gap-2">
                 <select id="model" class="form-select" bind:value={model}>
@@ -233,7 +257,7 @@
             </div>
         </div>
 
-        <div class="col-md-5">
+        <div class="col-md-6">
             <span class="form-label d-block">Voz clonada</span>
             <button
                 type="button"
@@ -246,25 +270,58 @@
                 <span class="text-truncate"><i class="fa-solid fa-microphone" aria-hidden="true"></i> {selectedVoice ? selectedVoice.title : 'Voz por defecto del modelo (elegir...)'}</span>
             </button>
         </div>
+    </div>
 
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100" disabled={ttsLoading || !fishAvailable} title={fishAvailable ? '' : 'Falta configurar FISH_API_KEY en .env'}>
-                {#if ttsLoading}<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{/if}
-                {ttsLoading ? 'Generando...' : 'Generar audio'}
-            </button>
+    <div class="d-flex align-items-center flex-wrap gap-3">
+        <div class="form-check form-switch mb-0">
+            <input id="autoplay" class="form-check-input" type="checkbox" role="switch" bind:checked={autoplay} />
+            <label class="form-check-label small" for="autoplay">
+                <i class="fa-solid fa-circle-play" aria-hidden="true"></i> Reproducir al terminar
+            </label>
         </div>
+
+        <div class="form-check form-switch mb-0">
+            <!-- Se mira `currentTarget.checked` porque el binding aún puede ir un paso por detrás. -->
+            <input
+                id="notifySound"
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                bind:checked={notifySound}
+                onchange={(e) => e.currentTarget.checked && playNotifySound()}
+            />
+            <label class="form-check-label small" for="notifySound">
+                <i class="fa-solid fa-bell" aria-hidden="true"></i> Sonido de aviso
+            </label>
+        </div>
+
+        <button
+            type="submit"
+            class="btn btn-primary ms-auto flex-shrink-0"
+            disabled={ttsLoading || !fishAvailable}
+            title={fishAvailable ? '' : 'Falta configurar FISH_API_KEY en .env'}
+        >
+            {#if ttsLoading}<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{/if}
+            {ttsLoading ? 'Generando...' : 'Generar audio'}
+        </button>
     </div>
 
     {#if ttsError}<div class="alert alert-danger py-2 mb-0">{ttsError}</div>{/if}
-    {#if audioUrl}
-        <AudioPlayer
-            src={audioUrl}
-            downloadName="{audioId || 'fish-audio'}.wav"
-            compressedName="{audioId || 'fish-audio'}.mp3"
-            bind:currentTime={audioTime}
-            bind:duration={audioDuration}
-            bind:volume={audioVolume}
-        />
+    {#if ttsLoading}
+        <GeneratingIndicator />
+    {:else if audioUrl}
+        <!-- Sin la key el reproductor conservaría el estado del audio anterior. -->
+        {#key audioUrl}
+            <AudioPlayer
+                src={audioUrl}
+                downloadName="{audioId || 'fish-audio'}.wav"
+                compressedName="{audioId || 'fish-audio'}.mp3"
+                bind:currentTime={audioTime}
+                bind:duration={audioDuration}
+                bind:volume={audioVolume}
+                bind:paused={audioPaused}
+            />
+        {/key}
     {/if}
 
     <div>
