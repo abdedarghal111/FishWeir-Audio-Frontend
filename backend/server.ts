@@ -25,5 +25,5 @@ app.use(statusRouter)
 serveFrontend(app)
 
 app.listen(PORT, () => {
-  console.log(`Backend escuchando en http://localhost:${PORT}`)
+    console.log(`Backend escuchando en http://localhost:${PORT}`)
 })
