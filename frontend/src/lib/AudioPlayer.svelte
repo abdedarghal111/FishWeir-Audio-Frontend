@@ -10,6 +10,7 @@
         currentTime = $bindable(0),
         duration = $bindable(0),
         volume = $bindable(1),
+        paused = $bindable(true),
     }: {
         src: string
         downloadName?: string
@@ -18,10 +19,9 @@
         currentTime?: number
         duration?: number
         volume?: number
+        // Asignarlo reproduce/pausa solo; es prop para poder montarlo ya sonando.
+        paused?: boolean
     } = $props()
-
-    // Bindings sobre el <audio> oculto: asignar `paused` reproduce/pausa solo.
-    let paused = $state(true)
 
     // El <audio> nuevo arranca en 0 y no sabe la duración hasta cargar los metadatos.
     const startTime = currentTime
