@@ -6,11 +6,11 @@ import { deepSeek } from '../lib/deepseek-client.ts'
 const router = Router()
 
 router.get('/api/fish-audio/status', (_req, res) => {
-  res.json({ available: fishAudio !== null })
+    res.json({ available: fishAudio !== null })
 })
 
 router.get('/api/enhance-text/status', (_req, res) => {
-  res.json({ available: deepSeek !== null })
+    res.json({ available: deepSeek !== null })
 })
 
 export default router

@@ -9,19 +9,19 @@ import wasmURL from '@ffmpeg/core/wasm?url'
 let ffmpegPromise: Promise<FFmpeg> | null = null
 
 function loadFfmpeg(): Promise<FFmpeg> {
-  if (!ffmpegPromise) {
-    ffmpegPromise = (async () => {
-      const ffmpeg = new FFmpeg()
-      // toBlobURL reempaqueta el core/wasm de Vite como blob: URL, como recomienda
-      // ffmpeg.wasm para evitar problemas de CORS/MIME.
-      await ffmpeg.load({
-        coreURL: await toBlobURL(coreURL, 'text/javascript'),
-        wasmURL: await toBlobURL(wasmURL, 'application/wasm'),
-      })
-      return ffmpeg
-    })()
-  }
-  return ffmpegPromise
+    if (!ffmpegPromise) {
+        ffmpegPromise = (async () => {
+            const ffmpeg = new FFmpeg()
+            // toBlobURL reempaqueta el core/wasm de Vite como blob: URL, como recomienda
+            // ffmpeg.wasm para evitar problemas de CORS/MIME.
+            await ffmpeg.load({
+                coreURL: await toBlobURL(coreURL, 'text/javascript'),
+                wasmURL: await toBlobURL(wasmURL, 'application/wasm'),
+            })
+            return ffmpeg
+        })()
+    }
+    return ffmpegPromise
 }
 
 /**
@@ -32,21 +32,21 @@ function loadFfmpeg(): Promise<FFmpeg> {
  * ffmpeg.wasm, para poder convertir varios audios a la vez sin que se pisen.
  */
 export async function convertToMp3(src: string, bitrateKbps = 192): Promise<Blob> {
-  const ffmpeg = await loadFfmpeg()
-  const id = crypto.randomUUID()
-  const inputName = `${id}.wav`
-  const outputName = `${id}.mp3`
+    const ffmpeg = await loadFfmpeg()
+    const id = crypto.randomUUID()
+    const inputName = `${id}.wav`
+    const outputName = `${id}.mp3`
 
-  try {
-    await ffmpeg.writeFile(inputName, await fetchFile(src))
-    await ffmpeg.exec(['-i', inputName, '-codec:a', 'libmp3lame', '-b:a', `${bitrateKbps}k`, outputName])
-    const data = await ffmpeg.readFile(outputName)
-    // .slice() copia a un ArrayBuffer normal: ffmpeg.wasm puede devolver uno respaldado
-    // por SharedArrayBuffer, que Blob no acepta.
-    const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data.slice()
-    return new Blob([bytes], { type: 'audio/mpeg' })
-  } finally {
-    await ffmpeg.deleteFile(inputName).catch(() => {})
-    await ffmpeg.deleteFile(outputName).catch(() => {})
-  }
+    try {
+        await ffmpeg.writeFile(inputName, await fetchFile(src))
+        await ffmpeg.exec(['-i', inputName, '-codec:a', 'libmp3lame', '-b:a', `${bitrateKbps}k`, outputName])
+        const data = await ffmpeg.readFile(outputName)
+        // .slice() copia a un ArrayBuffer normal: ffmpeg.wasm puede devolver uno respaldado
+        // por SharedArrayBuffer, que Blob no acepta.
+        const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data.slice()
+        return new Blob([bytes], { type: 'audio/mpeg' })
+    } finally {
+        await ffmpeg.deleteFile(inputName).catch(() => {})
+        await ffmpeg.deleteFile(outputName).catch(() => {})
+    }
 }

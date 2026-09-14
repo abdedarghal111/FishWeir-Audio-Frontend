@@ -1,43 +1,43 @@
 {
-  "name": "fishweir-audio-frontend",
-  "version": "1.0.0",
-  "description": "Frontend en Svelte + backend en Node para generar audio con Fish Audio",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "concurrently -n backend,frontend -c green,blue \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
-    "dev:backend": "node --watch --env-file-if-exists=.env backend/server.ts",
-    "dev:frontend": "vite --config frontend/vite.config.ts",
-    "build": "vite build --config frontend/vite.config.ts",
-    "start": "pnpm run build && node --env-file-if-exists=.env backend/server.ts",
-    "check:backend": "tsc -p backend/tsconfig.json",
-    "check:frontend": "svelte-check --tsconfig frontend/tsconfig.app.json"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
-  "packageManager": "pnpm@11.20.0",
-  "dependencies": {
-    "@ffmpeg/core": "^0.12.10",
-    "@ffmpeg/ffmpeg": "^0.12.15",
-    "@ffmpeg/util": "^0.12.2",
-    "@fortawesome/fontawesome-free": "^7.3.1",
-    "bootstrap": "^5.3.8",
-    "express": "^5.2.1",
-    "fish-audio": "^0.1.0",
-    "multer": "^2.2.0",
-    "openai": "^4.104.0"
-  },
-  "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^7.2.0",
-    "@tsconfig/svelte": "^5.0.8",
-    "@types/express": "^5.0.6",
-    "@types/multer": "^2.2.0",
-    "@types/node": "^26.1.2",
-    "concurrently": "^10.0.4",
-    "svelte": "^5.56.8",
-    "svelte-check": "^4.7.4",
-    "typescript": "~6.0.3",
-    "vite": "^8.2.0"
-  }
+    "name": "fishweir-audio-frontend",
+    "version": "1.0.0",
+    "description": "Frontend en Svelte + backend en Node para generar audio con Fish Audio",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "concurrently -n backend,frontend -c green,blue \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+        "dev:backend": "node --watch --env-file-if-exists=.env backend/server.ts",
+        "dev:frontend": "vite --config frontend/vite.config.ts",
+        "build": "vite build --config frontend/vite.config.ts",
+        "start": "pnpm run build && node --env-file-if-exists=.env backend/server.ts",
+        "check:backend": "tsc -p backend/tsconfig.json",
+        "check:frontend": "svelte-check --tsconfig frontend/tsconfig.app.json"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "MIT",
+    "packageManager": "pnpm@11.20.0",
+    "dependencies": {
+        "@ffmpeg/core": "^0.12.10",
+        "@ffmpeg/ffmpeg": "^0.12.15",
+        "@ffmpeg/util": "^0.12.2",
+        "@fortawesome/fontawesome-free": "^7.3.1",
+        "bootstrap": "^5.3.8",
+        "express": "^5.2.1",
+        "fish-audio": "^0.1.0",
+        "multer": "^2.2.0",
+        "openai": "^4.104.0"
+    },
+    "devDependencies": {
+        "@sveltejs/vite-plugin-svelte": "^7.2.0",
+        "@tsconfig/svelte": "^5.0.8",
+        "@types/express": "^5.0.6",
+        "@types/multer": "^2.2.0",
+        "@types/node": "^26.1.2",
+        "concurrently": "^10.0.4",
+        "svelte": "^5.56.8",
+        "svelte-check": "^4.7.4",
+        "typescript": "~6.0.3",
+        "vite": "^8.2.0"
+    }
 }
