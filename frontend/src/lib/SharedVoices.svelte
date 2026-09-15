@@ -3,35 +3,37 @@
     let sharedVoiceInput = $state('')
     let sharedVoiceLoading = $state(false)
     let sharedVoiceError = $state('')
-    let sharedVoiceSearch = $state('')
 </script>
 
 <script lang="ts">
     // Pestaña "Voces compartidas": voces de otros autores guardadas por enlace o ID.
-    import type { Favorite, Voice } from './types'
+    import type { Favorite, SelectedVoice, Voice } from './types'
+    import type { PagedResource } from './paged.svelte'
+    import Pagination from './Pagination.svelte'
     import VoiceCard from './VoiceCard.svelte'
 
     let {
-        sharedVoices,
-        favorites,
+        sharedVoicesPage,
         fishAvailable,
-        referenceId = $bindable(''),
+        selectedVoice = $bindable(null),
         isFavorite,
         onToggleFavorite,
         onAddSharedVoice,
         onRemoveSharedVoice,
     }: {
-        sharedVoices: Voice[]
-        favorites: Favorite[]
+        // El filtro por título lo aplica el backend sobre todas las voces guardadas.
+        sharedVoicesPage: PagedResource<Voice>
         // Si es `false`, falta FISH_API_KEY: no se pueden añadir voces nuevas, pero las
         // ya guardadas se siguen listando y quitando igual.
         fishAvailable: boolean
-        referenceId: string
+        selectedVoice: SelectedVoice | null
         isFavorite: (type: Favorite['type'], id: string) => boolean
         onToggleFavorite: (type: Favorite['type'], id: string, label: string) => void
         onAddSharedVoice: (input: string) => Promise<void>
         onRemoveSharedVoice: (id: string) => Promise<void>
     } = $props()
+
+    let sharedVoices = $derived(sharedVoicesPage.items)
 
     async function addSharedVoice(e: Event) {
         e.preventDefault()
@@ -57,9 +59,6 @@
         }
     }
 
-    let filteredSharedVoices = $derived(
-        sharedVoices.filter((v) => v.title.toLowerCase().includes(sharedVoiceSearch.trim().toLowerCase())),
-    )
 </script>
 
 <h2 class="h5 mb-3">Voces compartidas</h2>
@@ -108,30 +107,53 @@
     <input
         type="search"
         class="form-control form-control-sm"
-        bind:value={sharedVoiceSearch}
+        bind:value={sharedVoicesPage.search}
         placeholder="Buscar por título..."
     />
 </section>
 
 <section>
     <h3 class="h6">Voces guardadas</h3>
+
+    <!-- La misma barra se muestra encima y debajo del listado. -->
+    {#snippet pager()}
+        <Pagination
+            page={sharedVoicesPage.page}
+            pageCount={sharedVoicesPage.pageCount}
+            total={sharedVoicesPage.total}
+            pageSize={sharedVoicesPage.pageSize}
+            loading={sharedVoicesPage.loading}
+            label="voces"
+            onPage={(p) => sharedVoicesPage.setPage(p)}
+            onPageSize={(size) => sharedVoicesPage.setPageSize(size)}
+        />
+    {/snippet}
+
+    {@render pager()}
+
     {#if sharedVoices.length === 0}
-        <p class="text-body-secondary">Todavía no has guardado ninguna voz compartida.</p>
-    {:else if filteredSharedVoices.length === 0}
-        <p class="text-body-secondary">Ninguna voz compartida coincide con "{sharedVoiceSearch}".</p>
+        <p class="text-body-secondary">
+            {#if sharedVoicesPage.search.trim()}
+                Ninguna voz compartida coincide con "{sharedVoicesPage.search}".
+            {:else}
+                Todavía no has guardado ninguna voz compartida.
+            {/if}
+        </p>
     {:else}
         <div class="d-flex flex-column gap-3">
-            {#each filteredSharedVoices as voice (voice.id)}
+            {#each sharedVoices as voice (voice.id)}
                 <VoiceCard
                     {voice}
                     favorite={isFavorite('voice', voice.id)}
                     onToggleFavorite={() => onToggleFavorite('voice', voice.id, voice.title)}
-                    onSelect={() => (referenceId = voice.id)}
-                    selected={referenceId === voice.id}
+                    onSelect={() => (selectedVoice = { id: voice.id, title: voice.title, coverImage: voice.coverImage })}
+                    selected={selectedVoice?.id === voice.id}
                     onRemove={() => removeSharedVoice(voice.id)}
                     removeLabel="Quitar"
                 />
             {/each}
         </div>
     {/if}
+
+    {@render pager()}
 </section>

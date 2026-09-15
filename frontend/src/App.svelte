@@ -6,6 +6,7 @@
     import SharedVoices from './lib/SharedVoices.svelte'
     import TextPanel from './lib/TextPanel.svelte'
     import { registerSpend } from './lib/WalletBar.svelte'
+    import { createPagedResource } from './lib/paged.svelte'
     import {
         errorMessage,
         loadPersisted,
@@ -13,6 +14,7 @@
         type Favorite,
         type Generation,
         type NewVoice,
+        type SelectedVoice,
         type Voice,
         type VoiceEdit,
     } from './lib/types'
@@ -33,20 +35,19 @@
         toasts = toasts.filter((t) => t.id !== id)
     }
 
-    let referenceId = $state(loadPersisted('referenceId', ''))
-    $effect(() => savePersisted('referenceId', referenceId))
+    // Se guarda la voz entera, no sólo su ID: ya no hay un listado completo en memoria donde
+    // consultar su título y su imagen.
+    let selectedVoice: SelectedVoice | null = $state(loadPersisted<SelectedVoice | null>('selectedVoice', null))
+    $effect(() => savePersisted('selectedVoice', selectedVoice))
 
     // Generar audio, clonar voces y añadir voces compartidas requieren FISH_API_KEY en el
     // backend; si falta, esos formularios se deshabilitan (el resto sigue funcionando).
     let fishAvailable = $state(true)
 
-    let voices: Voice[] = $state([])
-
-    async function loadVoices() {
-        const res = await fetch('/api/voices')
-        if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-        voices = await res.json()
-    }
+    // Los tres listados piden al backend sólo la página que se está mostrando.
+    const voicesPage = createPagedResource<Voice>('/api/voices', {
+        onError: (message) => notifyError(message),
+    })
 
     async function init() {
         try {
@@ -58,26 +59,16 @@
         }
 
         if (!fishAvailable) {
-            voices = []
+            voicesPage.clear()
             return
         }
-        try {
-            await loadVoices()
-        } catch (err) {
-            voices = []
-            notifyError(err instanceof Error ? err.message : 'No se han podido cargar tus voces')
-        }
+        await voicesPage.load()
     }
     init()
 
-    // Recargar la lista después de crear, editar o borrar es un extra: si falla, la operación
-    // ya se hizo igualmente, así que se avisa pero no se trata como si hubiera fallado.
+    // Si la recarga falla, la operación previa ya se completó: el recurso avisa y no se propaga.
     async function refreshVoices() {
-        try {
-            await loadVoices()
-        } catch (err) {
-            notifyError(err instanceof Error ? err.message : 'No se ha podido refrescar la lista de voces')
-        }
+        await voicesPage.load()
     }
 
     async function createVoiceApi(voice: NewVoice): Promise<Voice> {
@@ -138,17 +129,10 @@
         }
     }
 
-    let sharedVoices: Voice[] = $state([])
-
-    async function loadSharedVoices() {
-        const res = await fetch('/api/shared-voices')
-        if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-        sharedVoices = await res.json()
-    }
-    loadSharedVoices().catch((err) => {
-        sharedVoices = []
-        notifyError(err instanceof Error ? err.message : 'No se han podido cargar las voces compartidas')
+    const sharedVoicesPage = createPagedResource<Voice>('/api/shared-voices', {
+        onError: (message) => notifyError(message),
     })
+    sharedVoicesPage.load()
 
     async function addSharedVoiceApi(input: string) {
         try {
@@ -158,7 +142,7 @@
                 body: JSON.stringify({ input }),
             })
             if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-            await loadSharedVoices()
+            await sharedVoicesPage.load()
         } catch (err) {
             notifyError(err instanceof Error ? err.message : 'Error añadiendo la voz compartida')
             throw err
@@ -169,7 +153,7 @@
         try {
             const res = await fetch(`/api/shared-voices/${id}`, { method: 'DELETE' })
             if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-            await loadSharedVoices()
+            await sharedVoicesPage.load()
         } catch (err) {
             notifyError(err instanceof Error ? err.message : 'Error quitando la voz compartida')
             throw err
@@ -213,23 +197,21 @@
         }
     }
 
-    let generations: Generation[] = $state([])
-
-    async function loadGenerations() {
-        const res = await fetch('/api/generations')
-        if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-        generations = await res.json()
-    }
-    loadGenerations().catch((err) => {
-        generations = []
-        notifyError(err instanceof Error ? err.message : 'No se ha podido cargar el historial')
+    const generationsPage = createPagedResource<Generation>('/api/generations', {
+        onError: (message) => notifyError(message),
     })
+    generationsPage.load()
+
+    // El audio nuevo encabeza el historial, así que se vuelve a la primera página.
+    function onGenerated() {
+        generationsPage.setPage(1)
+    }
 
     async function deleteGenerationApi(id: string) {
         try {
             const res = await fetch(`/api/generations/${id}`, { method: 'DELETE' })
             if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-            await loadGenerations()
+            await generationsPage.load()
         } catch (err) {
             notifyError(err instanceof Error ? err.message : 'Error eliminando la generación')
             throw err
@@ -265,22 +247,19 @@
 
     {#if tab === 'generar'}
         <TextPanel
-            {voices}
-            {sharedVoices}
             {favorites}
             {fishAvailable}
-            bind:referenceId
+            bind:selectedVoice
             {isFavorite}
             onToggleFavorite={toggleFavorite}
-            onGenerated={loadGenerations}
+            {onGenerated}
             onError={notifyError}
         />
     {:else if tab === 'mis-voces'}
         <MyVoices
-            {voices}
-            {favorites}
+            {voicesPage}
             {fishAvailable}
-            bind:referenceId
+            bind:selectedVoice
             {isFavorite}
             onToggleFavorite={toggleFavorite}
             onCreateVoice={createVoiceApi}
@@ -289,17 +268,16 @@
         />
     {:else if tab === 'compartidas'}
         <SharedVoices
-            {sharedVoices}
-            {favorites}
+            {sharedVoicesPage}
             {fishAvailable}
-            bind:referenceId
+            bind:selectedVoice
             {isFavorite}
             onToggleFavorite={toggleFavorite}
             onAddSharedVoice={addSharedVoiceApi}
             onRemoveSharedVoice={removeSharedVoiceApi}
         />
     {:else}
-        <GenerationHistory {generations} onDeleteGeneration={deleteGenerationApi} />
+        <GenerationHistory {generationsPage} onDeleteGeneration={deleteGenerationApi} />
     {/if}
 </main>
 

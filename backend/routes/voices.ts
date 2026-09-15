@@ -2,6 +2,7 @@ import { Router } from 'express'
 import type { RequestHandler } from 'express'
 import multer from 'multer'
 import { fishAudioFetch, requireFishAudio, sendFishAudioError, toVoiceModel } from '../lib/fish-audio-client.ts'
+import { readPageQuery } from '../lib/pagination.ts'
 
 // Formatos que acepta la clonación instantánea de Fish Audio.
 // https://docs.fish.audio/features/voice-cloning
@@ -47,13 +48,20 @@ function hasAllowedExtension(name: string): boolean {
     return AUDIO_EXTENSIONS.some((ext) => name.toLowerCase().endsWith(ext))
 }
 
-router.get('/api/voices', async (_req, res) => {
+// La página y la búsqueda se delegan en Fish Audio, que ya las admite en su propio endpoint.
+router.get('/api/voices', async (req, res) => {
     const client = requireFishAudio(res)
     if (!client) return
 
+    const { page, pageSize, search } = readPageQuery(req)
     try {
-        const result = await client.voices.search({ self: true })
-        res.json(result.items.map(toVoiceModel))
+        const result = await client.voices.search({
+            self: true,
+            page_number: page,
+            page_size: pageSize,
+            ...(search ? { title: search } : {}),
+        })
+        res.json({ items: result.items.map(toVoiceModel), total: result.total, page, pageSize })
     } catch (error) {
         sendFishAudioError(res, error, 'No se han podido obtener tus voces de Fish Audio.')
     }
