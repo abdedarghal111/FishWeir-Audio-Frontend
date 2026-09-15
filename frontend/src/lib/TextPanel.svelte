@@ -25,7 +25,7 @@
 
 <script lang="ts">
     // Pestaña "Generar": texto/modelo + selector compacto de voz (VoiceQuickPicker) en el mismo formulario.
-    import { MODELS, errorMessage, loadPersisted, savePersisted, type Favorite, type Voice } from './types'
+    import { MODELS, errorMessage, loadPersisted, savePersisted, type Favorite, type SelectedVoice } from './types'
     import AudioPlayer from './AudioPlayer.svelte'
     import EnhanceTextModal from './EnhanceTextModal.svelte'
     import GeneratingIndicator from './GeneratingIndicator.svelte'
@@ -34,22 +34,19 @@
     import WalletBar, { registerSpend } from './WalletBar.svelte'
 
     let {
-        voices,
-        sharedVoices,
         favorites,
         fishAvailable,
-        referenceId = $bindable(''),
+        selectedVoice = $bindable(null),
         isFavorite,
         onToggleFavorite,
         onGenerated,
         onError,
     }: {
-        voices: Voice[]
-        sharedVoices: Voice[]
         favorites: Favorite[]
         // Si es `false`, falta FISH_API_KEY: se deshabilita "Generar audio" en vez de fallar.
         fishAvailable: boolean
-        referenceId: string
+        // Los listados de voces no se cargan aquí: el selector los pide paginados al abrirse.
+        selectedVoice: SelectedVoice | null
         isFavorite: (type: Favorite['type'], id: string) => boolean
         onToggleFavorite: (type: Favorite['type'], id: string, label: string) => void
         onGenerated: () => void
@@ -58,7 +55,7 @@
     } = $props()
 
     // El formulario (texto, modelo, params avanzados) se recuerda entre visitas (localStorage),
-    // igual que referenceId (que vive en App.svelte).
+    // igual que la voz elegida (que vive en App.svelte).
     let text = $state(loadPersisted('text', ''))
     $effect(() => savePersisted('text', text))
 
@@ -125,9 +122,6 @@
     let sampleRate = $state(loadPersisted('sampleRate', ''))
     $effect(() => savePersisted('sampleRate', sampleRate))
 
-    let allVoices = $derived([...voices, ...sharedVoices])
-    let selectedVoice = $derived(allVoices.find((v) => v.id === referenceId))
-
     let showVoiceModal = $state(false)
 
     function closeVoiceModalOnEscape(e: KeyboardEvent) {
@@ -135,8 +129,9 @@
     }
 
     function selectFavorite(fav: Favorite) {
+        // La etiqueta del favorito es el título de la voz, así que no hace falta consultarla.
         if (fav.type === 'model') model = fav.id
-        else referenceId = fav.id
+        else selectedVoice = { id: fav.id, title: fav.label }
     }
 
     async function generateSpeech(e: Event) {
@@ -152,7 +147,7 @@
                 body: JSON.stringify({
                     text,
                     model,
-                    referenceId: referenceId || undefined,
+                    referenceId: selectedVoice?.id || undefined,
                     voiceTitle: selectedVoice?.title,
                     speed,
                     volume,
@@ -208,8 +203,8 @@
                         <button
                             type="button"
                             class="btn btn-sm"
-                            class:btn-primary={(fav.type === 'model' && model === fav.id) || (fav.type === 'voice' && referenceId === fav.id)}
-                            class:btn-outline-primary={!((fav.type === 'model' && model === fav.id) || (fav.type === 'voice' && referenceId === fav.id))}
+                            class:btn-primary={(fav.type === 'model' && model === fav.id) || (fav.type === 'voice' && selectedVoice?.id === fav.id)}
+                            class:btn-outline-primary={!((fav.type === 'model' && model === fav.id) || (fav.type === 'voice' && selectedVoice?.id === fav.id))}
                             onclick={() => selectFavorite(fav)}
                         >
                             <i class="fa-solid {fav.type === 'model' ? 'fa-robot' : 'fa-microphone'}" aria-hidden="true"></i> {fav.label}
@@ -472,7 +467,7 @@
                     <button type="button" class="btn-close" aria-label="Cerrar" onclick={() => (showVoiceModal = false)}></button>
                 </div>
                 <div class="modal-body">
-                    <VoiceQuickPicker {voices} {sharedVoices} bind:referenceId onSelect={() => (showVoiceModal = false)} />
+                    <VoiceQuickPicker {fishAvailable} bind:selectedVoice onSelect={() => (showVoiceModal = false)} />
                 </div>
             </div>
         </div>

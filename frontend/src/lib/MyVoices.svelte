@@ -1,34 +1,37 @@
 <script lang="ts">
     // Pestaña "Mis voces": la lista de voces clonadas. Clonar una nueva abre un modal, para no
     // tapar la lista con un formulario largo que casi siempre está sin usar.
-    import type { Favorite, NewVoice, Voice, VoiceEdit } from './types'
+    import type { Favorite, NewVoice, SelectedVoice, Voice, VoiceEdit } from './types'
+    import type { PagedResource } from './paged.svelte'
     import CloneVoiceModal, { hasDraft } from './CloneVoiceModal.svelte'
     import ConfirmModal from './ConfirmModal.svelte'
     import EditVoiceModal from './EditVoiceModal.svelte'
+    import Pagination from './Pagination.svelte'
     import VoiceCard from './VoiceCard.svelte'
 
     let {
-        voices,
-        favorites,
+        voicesPage,
         fishAvailable,
-        referenceId = $bindable(''),
+        selectedVoice = $bindable(null),
         isFavorite,
         onToggleFavorite,
         onCreateVoice,
         onUpdateVoice,
         onDeleteVoice,
     }: {
-        voices: Voice[]
-        favorites: Favorite[]
+        // La búsqueda y la página las resuelve Fish Audio a través del backend.
+        voicesPage: PagedResource<Voice>
         // Si es `false`, falta FISH_API_KEY en el backend: no se pueden clonar ni listar voces.
         fishAvailable: boolean
-        referenceId: string
+        selectedVoice: SelectedVoice | null
         isFavorite: (type: Favorite['type'], id: string) => boolean
         onToggleFavorite: (type: Favorite['type'], id: string, label: string) => void
         onCreateVoice: (voice: NewVoice) => Promise<Voice>
         onUpdateVoice: (id: string, edit: VoiceEdit) => Promise<void>
         onDeleteVoice: (id: string) => Promise<void>
     } = $props()
+
+    let voices = $derived(voicesPage.items)
 
     // Voz que se está editando / borrando; `undefined` = ese modal está cerrado.
     let editing: Voice | undefined = $state(undefined)
@@ -52,6 +55,29 @@
     <section>
         <h3 class="h5">Tus voces clonadas</h3>
 
+        <input
+            type="search"
+            class="form-control form-control-sm mb-3"
+            bind:value={voicesPage.search}
+            placeholder="Buscar por título..."
+        />
+
+        <!-- La misma barra se muestra encima y debajo del listado. -->
+        {#snippet pager()}
+            <Pagination
+                page={voicesPage.page}
+                pageCount={voicesPage.pageCount}
+                total={voicesPage.total}
+                pageSize={voicesPage.pageSize}
+                loading={voicesPage.loading}
+                label="voces"
+                onPage={(p) => voicesPage.setPage(p)}
+                onPageSize={(size) => voicesPage.setPageSize(size)}
+            />
+        {/snippet}
+
+        {@render pager()}
+
         <div class="d-flex flex-column gap-3">
             <!-- Hueco con aspecto de tarjeta vacía que abre el formulario de clonación. -->
             <button type="button" class="new-voice card w-100 text-start" onclick={() => (cloning = true)}>
@@ -74,7 +100,13 @@
             </button>
 
             {#if voices.length === 0}
-                <p class="text-body-secondary mb-0">Todavía no tienes ninguna voz clonada.</p>
+                <p class="text-body-secondary mb-0">
+                    {#if voicesPage.search.trim()}
+                        Ninguna voz coincide con "{voicesPage.search}".
+                    {:else}
+                        Todavía no tienes ninguna voz clonada.
+                    {/if}
+                </p>
             {/if}
 
             {#each voices as voice (voice.id)}
@@ -82,14 +114,16 @@
                     {voice}
                     favorite={isFavorite('voice', voice.id)}
                     onToggleFavorite={() => onToggleFavorite('voice', voice.id, voice.title)}
-                    onSelect={() => (referenceId = voice.id)}
-                    selected={referenceId === voice.id}
+                    onSelect={() => (selectedVoice = { id: voice.id, title: voice.title, coverImage: voice.coverImage })}
+                    selected={selectedVoice?.id === voice.id}
                     onEdit={() => (editing = voice)}
                     onRemove={() => (deleting = voice)}
                     removeLabel="Eliminar"
                 />
             {/each}
         </div>
+
+        {@render pager()}
     </section>
 
     {#if cloning}

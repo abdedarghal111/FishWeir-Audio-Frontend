@@ -65,6 +65,10 @@ export const VISIBILITY_OPTIONS: { value: VoiceVisibility; label: string; hint: 
 export const AUDIO_EXTENSIONS = ['.wav', '.mp3', '.m4a', '.opus']
 export const MAX_VOICE_FILES = 20
 
+// Datos de la voz elegida que necesita el formulario de generación. Se guardan aparte de los
+// listados porque la voz seleccionada puede no estar en la página que se muestra.
+export type SelectedVoice = { id: string; title: string; coverImage?: string }
+
 export type Favorite = { key: string; type: 'model' | 'voice'; id: string; label: string }
 
 // Respuesta de los listados paginados del backend (historial, voces, voces compartidas).
