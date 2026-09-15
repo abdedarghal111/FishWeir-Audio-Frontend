@@ -67,6 +67,9 @@ export const MAX_VOICE_FILES = 20
 
 export type Favorite = { key: string; type: 'model' | 'voice'; id: string; label: string }
 
+// Respuesta de los listados paginados del backend (historial, voces, voces compartidas).
+export type Page<T> = { items: T[]; total: number; page: number; pageSize: number }
+
 // Generación de audio persistida en el servidor (data/generations).
 export type Generation = {
     id: string
