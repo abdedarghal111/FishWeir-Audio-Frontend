@@ -88,7 +88,7 @@ function parseBody(text: string): unknown {
 
 // Los fallos se lanzan como `FishAudioError` / `FishAudioTimeoutError` para que
 // `sendFishAudioError` los traduzca igual que los del resto de llamadas.
-export async function fishAudioFetch(path: string, method: 'POST' | 'PATCH', body: FormData | string) {
+export async function fishAudioFetch(path: string, method: 'GET' | 'POST' | 'PATCH', body?: FormData | string) {
     const headers: Record<string, string> = { Authorization: `Bearer ${apiKey}` }
     if (typeof body === 'string') headers['Content-Type'] = 'application/json'
 
