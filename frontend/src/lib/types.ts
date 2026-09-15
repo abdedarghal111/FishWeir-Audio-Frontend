@@ -90,6 +90,16 @@ export type Generation = {
     sampleRate?: number
 }
 
+// `credit` es dinero de prepago y `package` la cuota del plan, en caracteres.
+export type Wallet = {
+    credit: number
+    package: {
+        type: string
+        total: number
+        balance: number
+    } | null
+}
+
 export const STATE_LABELS: Record<string, string> = {
     created: 'Creada',
     training: 'Entrenando',
