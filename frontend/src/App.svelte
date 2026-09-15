@@ -5,6 +5,7 @@
     import MyVoices from './lib/MyVoices.svelte'
     import SharedVoices from './lib/SharedVoices.svelte'
     import TextPanel from './lib/TextPanel.svelte'
+    import { registerSpend } from './lib/WalletBar.svelte'
     import {
         errorMessage,
         loadPersisted,
@@ -96,6 +97,8 @@
             const res = await fetch('/api/voices', { method: 'POST', body: form })
             if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
             const created: Voice = await res.json()
+            // Sin await: puede reintentar durante varios segundos.
+            registerSpend()
             await refreshVoices()
             // Se devuelve la voz creada para poder mostrar el análisis de calidad de los audios,
             // que sólo viene en esta respuesta y no al listar.
