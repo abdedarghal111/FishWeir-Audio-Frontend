@@ -31,6 +31,7 @@
     import GeneratingIndicator from './GeneratingIndicator.svelte'
     import { playNotifySound } from './notifySound'
     import VoiceQuickPicker from './VoiceQuickPicker.svelte'
+    import WalletBar, { registerSpend } from './WalletBar.svelte'
 
     let {
         voices,
@@ -185,6 +186,8 @@
             }
             // El backend ya lo ha guardado (audio + texto/modelo/voz) en su historial.
             onGenerated()
+            // Sin await: puede reintentar durante varios segundos.
+            registerSpend()
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Error generando el audio'
             ttsError = message
@@ -234,6 +237,10 @@
             (<code>FISH_API_KEY</code> en <code>.env</code>). El resto de la aplicación funciona con normalidad.
         </span>
     </div>
+{/if}
+
+{#if fishAvailable}
+    <WalletBar />
 {/if}
 
 <form onsubmit={generateSpeech} class="d-flex flex-column gap-4">
