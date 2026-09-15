@@ -1,13 +1,22 @@
 import path from 'node:path'
 import { unlink } from 'node:fs/promises'
 import { Router } from 'express'
-import { generationsStore } from '../lib/generations-store.ts'
+import { generationsStore, type Generation } from '../lib/generations-store.ts'
+import { paginate, readPageQuery } from '../lib/pagination.ts'
 import { GENERATIONS_DIR } from '../lib/paths.ts'
 
 const router = Router()
 
-router.get('/api/generations', async (_req, res) => {
-    res.json(await generationsStore.read())
+function matchesSearch(generation: Generation, search: string): boolean {
+    const haystack = [generation.text, generation.voiceTitle ?? '', generation.model].join(' ').toLowerCase()
+    return haystack.includes(search)
+}
+
+router.get('/api/generations', async (req, res) => {
+    const { page, pageSize, search } = readPageQuery(req)
+    const generations = await generationsStore.read()
+    const filtered = search ? generations.filter((g) => matchesSearch(g, search)) : generations
+    res.json(paginate(filtered, page, pageSize))
 })
 
 router.get('/api/generations/:id/audio', async (req, res) => {

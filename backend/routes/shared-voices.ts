@@ -3,6 +3,7 @@
 import { Router } from 'express'
 import { createJsonStore } from '../lib/json-store.ts'
 import { requireFishAudio, sendFishAudioError, toVoiceModel, type VoiceModel } from '../lib/fish-audio-client.ts'
+import { paginate, readPageQuery } from '../lib/pagination.ts'
 import { SHARED_VOICES_PATH } from '../lib/paths.ts'
 
 const sharedVoicesStore = createJsonStore<VoiceModel>(SHARED_VOICES_PATH)
@@ -29,8 +30,11 @@ function extractVoiceId(input: string): string {
 
 const router = Router()
 
-router.get('/api/shared-voices', async (_req, res) => {
-    res.json(await sharedVoicesStore.read())
+router.get('/api/shared-voices', async (req, res) => {
+    const { page, pageSize, search } = readPageQuery(req)
+    const voices = await sharedVoicesStore.read()
+    const filtered = search ? voices.filter((v) => v.title.toLowerCase().includes(search)) : voices
+    res.json(paginate(filtered, page, pageSize))
 })
 
 router.post('/api/shared-voices', async (req, res) => {
@@ -47,7 +51,8 @@ router.post('/api/shared-voices', async (req, res) => {
     try {
         const voice = toVoiceModel(await client.voices.get(id))
         const voices = await sharedVoicesStore.read()
-        const next = [...voices.filter((v) => v.id !== id), voice]
+        // La voz nueva va primero: al final quedaría en la última página del listado.
+        const next = [voice, ...voices.filter((v) => v.id !== id)]
         await sharedVoicesStore.write(next)
         res.status(201).json(voice)
     } catch (error) {
