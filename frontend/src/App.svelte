@@ -6,6 +6,7 @@
     import SharedVoices from './lib/SharedVoices.svelte'
     import TextPanel from './lib/TextPanel.svelte'
     import { registerSpend } from './lib/WalletBar.svelte'
+    import { createPagedResource } from './lib/paged.svelte'
     import {
         errorMessage,
         loadPersisted,
@@ -213,23 +214,21 @@
         }
     }
 
-    let generations: Generation[] = $state([])
-
-    async function loadGenerations() {
-        const res = await fetch('/api/generations')
-        if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-        generations = await res.json()
-    }
-    loadGenerations().catch((err) => {
-        generations = []
-        notifyError(err instanceof Error ? err.message : 'No se ha podido cargar el historial')
+    const generationsPage = createPagedResource<Generation>('/api/generations', {
+        onError: (message) => notifyError(message),
     })
+    generationsPage.load()
+
+    // El audio nuevo encabeza el historial, así que se vuelve a la primera página.
+    function onGenerated() {
+        generationsPage.setPage(1)
+    }
 
     async function deleteGenerationApi(id: string) {
         try {
             const res = await fetch(`/api/generations/${id}`, { method: 'DELETE' })
             if (!res.ok) throw new Error(await errorMessage(res, `Error ${res.status}`))
-            await loadGenerations()
+            await generationsPage.load()
         } catch (err) {
             notifyError(err instanceof Error ? err.message : 'Error eliminando la generación')
             throw err
@@ -272,7 +271,7 @@
             bind:referenceId
             {isFavorite}
             onToggleFavorite={toggleFavorite}
-            onGenerated={loadGenerations}
+            {onGenerated}
             onError={notifyError}
         />
     {:else if tab === 'mis-voces'}
@@ -299,7 +298,7 @@
             onRemoveSharedVoice={removeSharedVoiceApi}
         />
     {:else}
-        <GenerationHistory {generations} onDeleteGeneration={deleteGenerationApi} />
+        <GenerationHistory {generationsPage} onDeleteGeneration={deleteGenerationApi} />
     {/if}
 </main>
 

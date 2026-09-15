@@ -6,15 +6,20 @@
 <script lang="ts">
     // Pestaña "Historial": audios ya generados, a ancho completo (no en columna estrecha).
     import { formatBytes, formatDate, type Generation } from './types'
+    import type { PagedResource } from './paged.svelte'
     import AudioPlayer from './AudioPlayer.svelte'
+    import Pagination from './Pagination.svelte'
 
     let {
-        generations,
+        generationsPage,
         onDeleteGeneration,
     }: {
-        generations: Generation[]
+        // Sólo llegan los audios de la página actual; cada uno monta su propio reproductor.
+        generationsPage: PagedResource<Generation>
         onDeleteGeneration: (id: string) => Promise<void>
     } = $props()
+
+    let generations = $derived(generationsPage.items)
 
     async function deleteGeneration(id: string) {
         try {
@@ -27,8 +32,37 @@
 
 <h2 class="h5 mb-3">Audios generados</h2>
 
+<input
+    type="search"
+    class="form-control form-control-sm mb-3"
+    bind:value={generationsPage.search}
+    placeholder="Buscar por texto, voz o modelo..."
+/>
+
+<!-- La misma barra se muestra encima y debajo de la rejilla. -->
+{#snippet pager()}
+    <Pagination
+        page={generationsPage.page}
+        pageCount={generationsPage.pageCount}
+        total={generationsPage.total}
+        pageSize={generationsPage.pageSize}
+        loading={generationsPage.loading}
+        label="audios"
+        onPage={(p) => generationsPage.setPage(p)}
+        onPageSize={(size) => generationsPage.setPageSize(size)}
+    />
+{/snippet}
+
+{@render pager()}
+
 {#if generations.length === 0}
-    <p class="text-body-secondary">Todavía no has generado ningún audio.</p>
+    <p class="text-body-secondary">
+        {#if generationsPage.search.trim()}
+            Ningún audio coincide con "{generationsPage.search}".
+        {:else}
+            Todavía no has generado ningún audio.
+        {/if}
+    </p>
 {:else}
     <div class="row g-3">
         {#each generations as g (g.id)}
@@ -77,5 +111,7 @@
         {/each}
     </div>
 {/if}
+
+{@render pager()}
 
 {#if generationsError}<div class="alert alert-danger py-2 mt-3 mb-0">{generationsError}</div>{/if}
