@@ -7,6 +7,7 @@ import sharedVoicesRouter from './routes/shared-voices.ts'
 import enhanceTextRouter from './routes/enhance-text.ts'
 import statusRouter from './routes/status.ts'
 import walletRouter from './routes/wallet.ts'
+import updateRouter from './routes/update.ts'
 import { serveFrontend } from './lib/frontend-static.ts'
 
 const PORT = Number(process.env.PORT) || 4000
@@ -22,6 +23,7 @@ app.use(sharedVoicesRouter)
 app.use(enhanceTextRouter)
 app.use(statusRouter)
 app.use(walletRouter)
+app.use(updateRouter)
 
 // Se registra al final para no interceptar las rutas /api con el comodín '/*splat'.
 serveFrontend(app)

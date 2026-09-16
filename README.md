@@ -29,12 +29,15 @@ Aclarado esto por si acaso: no tiene ninguna intención maliciosa ni busca insin
 
 ## Funcionalidades
 
-- Generar audio a partir de texto (texto a voz), eligiendo modelo, voz clonada opcional y parámetros avanzados de generación.
+- Generar audio a partir de texto, eligiendo modelo y voz, con un panel avanzado con todos los ajustes de la generación.
 - Mejorar el texto con IA antes de generar, añadiendo marcadores de emoción y tono (requiere una API key de DeepSeek).
-- Listar, crear (clonación instantánea a partir de audios de referencia) y eliminar tus voces clonadas.
+- Crear, editar y eliminar tus voces clonadas a partir de audios de referencia.
 - Guardar voces de otros autores por enlace o ID de fish.audio y usarlas igual que las propias.
 - Marcar modelos y voces como favoritos para elegirlos rápido sin buscar en los selects.
-- Guardar y consultar el historial de audios generados, con reproducción y descarga (wav o mp3 comprimido) y guardando todos los metadatos.
+- Reproducir el audio al terminar de generar y avisar con un sonido, ambas cosas opcionales y activables con un clic.
+- Ver el saldo de la cuenta de Fish Audio y lo que cuesta cada generación.
+- Consultar el historial de audios generados, con la ficha completa de cada uno, reproducción y descarga (wav o mp3).
+- Avisar cuando hay una actualización disponible.
 
 ## Modo de uso
 
@@ -86,6 +89,8 @@ Otros comandos útiles:
 - **Docs:** guías de referencia en `docs/` (p. ej. emociones y tono para Fish Audio).
 
 ## Galería
+
+> Las capturas son de una versión anterior: la aplicación ha seguido creciendo y varias de las funcionalidades de la lista de arriba no aparecen en ellas.
 
 <p align="center">
     <img src="./.github/images/screenshot2.png" width="800"><br>

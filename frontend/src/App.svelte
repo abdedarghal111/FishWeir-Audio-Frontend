@@ -5,6 +5,7 @@
     import MyVoices from './lib/MyVoices.svelte'
     import SharedVoices from './lib/SharedVoices.svelte'
     import TextPanel from './lib/TextPanel.svelte'
+    import UpdateBanner from './lib/UpdateBanner.svelte'
     import { registerSpend } from './lib/WalletBar.svelte'
     import { createPagedResource } from './lib/paged.svelte'
     import {
@@ -221,6 +222,8 @@
 
 <main class="container py-4">
     <h1 class="mb-4">FishWeir Audio Frontend</h1>
+
+    <UpdateBanner />
 
     <ul class="nav nav-tabs mb-4">
         <li class="nav-item">

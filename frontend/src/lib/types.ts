@@ -107,6 +107,16 @@ export type Wallet = {
     } | null
 }
 
+// Respuesta de /api/update: versión instalada frente a la última publicada en GitHub.
+export type UpdateStatus = {
+    status: 'up-to-date' | 'update-available' | 'unknown'
+    reason?: string
+    currentVersion: string
+    latestVersion?: string
+    releaseUrl?: string
+    checkedAt: string
+}
+
 export const STATE_LABELS: Record<string, string> = {
     created: 'Creada',
     training: 'Entrenando',
