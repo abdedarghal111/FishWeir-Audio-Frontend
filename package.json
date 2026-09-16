@@ -1,6 +1,6 @@
 {
     "name": "fishweir-audio-frontend",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Frontend en Svelte + backend en Node para generar audio con Fish Audio",
     "private": true,
     "type": "module",
